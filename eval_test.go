@@ -12,6 +12,7 @@ package sxpf_test
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/t73fde/sxpf"
@@ -77,10 +78,14 @@ func init() {
 	}
 }
 
-func (e *testEnv) EvaluateSymbol(sym *sxpf.Symbol) (sxpf.Value, error) {
-	if fn, found := testFormMap[sym.GetValue()]; found {
-		return fn, nil
+func (e *testEnv) LookupForm(sym *sxpf.Symbol) (*sxpf.Form, error) {
+	if form, found := testFormMap[sym.GetValue()]; found {
+		return form, nil
 	}
+	return nil, fmt.Errorf("unbound form symbol %q", sym)
+}
+
+func (e *testEnv) EvaluateSymbol(sym *sxpf.Symbol) (sxpf.Value, error) {
 	return sym, nil
 }
 
