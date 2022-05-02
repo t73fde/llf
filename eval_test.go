@@ -78,18 +78,18 @@ func init() {
 	}
 }
 
-func (e *testEnv) LookupForm(sym *sxpf.Symbol) (*sxpf.Form, error) {
+func (*testEnv) LookupForm(sym *sxpf.Symbol) (*sxpf.Form, error) {
 	if form, found := testFormMap[sym.GetValue()]; found {
 		return form, nil
 	}
 	return nil, fmt.Errorf("unbound form symbol %q", sym)
 }
 
-func (e *testEnv) EvaluateSymbol(sym *sxpf.Symbol) (sxpf.Value, error) {
+func (*testEnv) EvaluateSymbol(sym *sxpf.Symbol) (sxpf.Value, error) {
 	return sym, nil
 }
 
-func (e *testEnv) EvaluateString(str *sxpf.String) (sxpf.Value, error) { return str, nil }
+func (*testEnv) EvaluateString(str *sxpf.String) (sxpf.Value, error) { return str, nil }
 func (e *testEnv) EvaluateList(lst *sxpf.List) (sxpf.Value, error) {
 	vals := lst.GetValue()
 	res, err, done := sxpf.EvaluateCall(e, vals)
