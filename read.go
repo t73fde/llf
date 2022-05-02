@@ -143,11 +143,9 @@ func parseRune(r Reader, buf *bytes.Buffer, curCh rune, numDigits int) error {
 			return err
 		}
 		if ch == '"' {
-			for j := 0; j <= i; j++ {
-				_, err = buf.WriteRune(arr[j])
-				if err != nil {
-					return err
-				}
+			err = flushRunes(buf, &arr, i)
+			if err != nil {
+				return err
 			}
 			return r.UnreadRune()
 		}
@@ -156,16 +154,20 @@ func parseRune(r Reader, buf *bytes.Buffer, curCh rune, numDigits int) error {
 			result = (result << 4) + rune(hexVal)
 			continue
 		}
-		for j := 0; j <= i+1; j++ {
-			_, err = buf.WriteRune(arr[j])
-			if err != nil {
-				return err
-			}
-		}
-		return nil
+		return flushRunes(buf, &arr, i+1)
 	}
 	_, err := buf.WriteRune(result)
 	return err
+}
+
+func flushRunes(buf *bytes.Buffer, arr *[8]rune, i int) error {
+	for j := 0; j <= i; j++ {
+		_, err := buf.WriteRune(arr[j])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func parseList(r Reader) (Value, error) {

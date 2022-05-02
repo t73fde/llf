@@ -8,7 +8,7 @@
 // under this license.
 //-----------------------------------------------------------------------------
 
-// Package sxpf allows to work with symbolic expressions, s-expression.
+// Package sxpf allows to work with symbolic expressions, s-expressions.
 package sxpf
 
 import (
@@ -23,9 +23,10 @@ type Value interface {
 	String() string
 }
 
+// GetSymbol returns the idx value of args as a Symbol.
 func GetSymbol(args []Value, idx int) (*Symbol, error) {
 	if idx < 0 && len(args) <= idx {
-		return nil, fmt.Errorf("index %d out of bounds: %v", idx, args)
+		return nil, makeErrIndexOutOfBounds(args, idx)
 	}
 	if val, ok := args[idx].(*Symbol); ok {
 		return val, nil
@@ -33,10 +34,10 @@ func GetSymbol(args []Value, idx int) (*Symbol, error) {
 	return nil, fmt.Errorf("%v / %d is not a symbol", args[idx], idx)
 }
 
+// GetString returns the idx value of args as a String.
 func GetString(args []Value, idx int) (string, error) {
 	if idx < 0 && len(args) <= idx {
-		return "", fmt.Errorf("index %d out of bounds: %v", idx, args)
-
+		return "", makeErrIndexOutOfBounds(args, idx)
 	}
 	if val, ok := args[idx].(*String); ok {
 		return val.GetValue(), nil
@@ -47,14 +48,17 @@ func GetString(args []Value, idx int) (string, error) {
 	return "", fmt.Errorf("%v / %d is not a string", args[idx], idx)
 }
 
+// GetList returns the idx value of args as a List.
 func GetList(args []Value, idx int) (*List, error) {
 	if idx < 0 && len(args) <= idx {
-		return nil, fmt.Errorf("index %d out of bounds: %v", idx, args)
-
+		return nil, makeErrIndexOutOfBounds(args, idx)
 	}
 	if val, ok := args[idx].(*List); ok {
 		return val, nil
 	}
 	return nil, fmt.Errorf("%v / %d is not a list", args[idx], idx)
+}
 
+func makeErrIndexOutOfBounds(args []Value, idx int) error {
+	return fmt.Errorf("index %d out of bounds: %v", idx, args)
 }
