@@ -17,21 +17,33 @@ import (
 
 // List is a sequence of values, including sub-lists.
 type List struct {
-	val []Value
+	val    []Value
+	frozen bool
 }
+
+// Nil is the defined value for an empty list.
+func Nil() *List { return &myNIL }
+
+var myNIL = List{val: []Value{}, frozen: true}
 
 // NewList creates a new list with the given values.
 func NewList(lstVal ...Value) *List {
+	if len(lstVal) == 0 {
+		return Nil()
+	}
 	for _, v := range lstVal {
 		if v == nil {
-			return nil
+			return Nil()
 		}
 	}
-	return &List{lstVal}
+	return &List{lstVal, false}
 }
 
 // Append some more value to a list.
 func (lst *List) Append(lstVal ...Value) {
+	if lst.frozen {
+		return
+	}
 	for _, v := range lstVal {
 		if v == nil {
 			return
@@ -42,6 +54,9 @@ func (lst *List) Append(lstVal ...Value) {
 
 // Extend the list by another
 func (lst *List) Extend(o *List) {
+	if lst.frozen {
+		return
+	}
 	if o != nil {
 		for _, v := range o.val {
 			if v == nil {

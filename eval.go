@@ -10,6 +10,8 @@
 
 package sxpf
 
+import "fmt"
+
 // Environment provides methods to evaluate a s-expression.
 type Environment interface {
 	// LookupForm returns the form associated with the given symbol.
@@ -80,3 +82,15 @@ func EvaluateSlice(env Environment, vals []Value) (res []Value, err error) {
 	}
 	return res, nil
 }
+
+// NotFormBoundError is returned as an error, if a symbol is not bound to a form.
+type NotFormBoundError struct {
+	Sym *Symbol
+}
+
+func (e *NotFormBoundError) Error() string {
+	return fmt.Sprintf("symbol %q not found to form", e.Sym.GetValue())
+}
+
+// ErrNotFormBound creates an error.
+func ErrNotFormBound(sym *Symbol) error { return &NotFormBoundError{sym} }

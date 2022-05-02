@@ -25,7 +25,7 @@ type Value interface {
 
 // GetSymbol returns the idx value of args as a Symbol.
 func GetSymbol(args []Value, idx int) (*Symbol, error) {
-	if idx < 0 && len(args) <= idx {
+	if idx < 0 || len(args) <= idx {
 		return nil, makeErrIndexOutOfBounds(args, idx)
 	}
 	if val, ok := args[idx].(*Symbol); ok {
@@ -36,7 +36,7 @@ func GetSymbol(args []Value, idx int) (*Symbol, error) {
 
 // GetString returns the idx value of args as a String.
 func GetString(args []Value, idx int) (string, error) {
-	if idx < 0 && len(args) <= idx {
+	if idx < 0 || len(args) <= idx {
 		return "", makeErrIndexOutOfBounds(args, idx)
 	}
 	if val, ok := args[idx].(*String); ok {
@@ -50,7 +50,7 @@ func GetString(args []Value, idx int) (string, error) {
 
 // GetList returns the idx value of args as a List.
 func GetList(args []Value, idx int) (*List, error) {
-	if idx < 0 && len(args) <= idx {
+	if idx < 0 || len(args) <= idx {
 		return nil, makeErrIndexOutOfBounds(args, idx)
 	}
 	if val, ok := args[idx].(*List); ok {
