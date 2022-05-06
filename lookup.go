@@ -38,3 +38,14 @@ func (sm *SymbolMap) Lookup(sym *Symbol) (Value, bool) {
 	}
 	return nil, false
 }
+
+// LookupForm returns the value associated with the given symbol, if the value
+// is a form.
+func (sm *SymbolMap) LookupForm(sym *Symbol) (*Form, error) {
+	if val, found := sm.Lookup(sym); found {
+		if form, ok := val.(*Form); ok {
+			return form, nil
+		}
+	}
+	return nil, ErrNotFormBound(sym)
+}

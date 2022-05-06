@@ -80,12 +80,7 @@ var testForms = []*sxpf.Form{
 }
 
 func (te *testEnv) LookupForm(sym *sxpf.Symbol) (*sxpf.Form, error) {
-	if val, found := te.symMap.Lookup(sym); found {
-		if form, ok := val.(*sxpf.Form); ok {
-			return form, nil
-		}
-	}
-	return nil, sxpf.ErrNotFormBound(sym)
+	return te.symMap.LookupForm(sym)
 }
 
 func (*testEnv) EvaluateSymbol(sym *sxpf.Symbol) (sxpf.Value, error) {
