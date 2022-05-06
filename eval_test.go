@@ -27,14 +27,14 @@ func TestEvaluate(t *testing.T) {
 		{"(CAT a b)", `"AB"`},
 		{"(QUOTE (A b) c)", "((A B) C)"},
 	}
-	env := testEnv{}
+	env := newTestEnv()
 	for i, tc := range testcases {
 		expr, err := sxpf.ReadString(tc.src)
 		if err != nil {
 			t.Error(err)
 			continue
 		}
-		val, err := sxpf.Evaluate(&env, expr)
+		val, err := sxpf.Evaluate(env, expr)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -46,7 +46,17 @@ func TestEvaluate(t *testing.T) {
 	}
 }
 
-type testEnv struct{}
+type testEnv struct {
+	symMap *sxpf.SymbolMap
+}
+
+func newTestEnv() *testEnv {
+	symMap := sxpf.NewSymbolMap(nil)
+	for _, form := range testForms {
+		symMap.Add(sxpf.NewSymbol(form.Name()), form)
+	}
+	return &testEnv{symMap: symMap}
+}
 
 var testForms = []*sxpf.Form{
 	sxpf.NewPrimForm(
@@ -69,17 +79,11 @@ var testForms = []*sxpf.Form{
 	),
 }
 
-var testFormMap = map[string]*sxpf.Form{}
-
-func init() {
-	for _, fn := range testForms {
-		testFormMap[fn.Name()] = fn
-	}
-}
-
-func (*testEnv) LookupForm(sym *sxpf.Symbol) (*sxpf.Form, error) {
-	if form, found := testFormMap[sym.GetValue()]; found {
-		return form, nil
+func (te *testEnv) LookupForm(sym *sxpf.Symbol) (*sxpf.Form, error) {
+	if val, found := te.symMap.Lookup(sym); found {
+		if form, ok := val.(*sxpf.Form); ok {
+			return form, nil
+		}
 	}
 	return nil, sxpf.ErrNotFormBound(sym)
 }
