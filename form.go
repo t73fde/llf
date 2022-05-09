@@ -10,42 +10,50 @@
 
 package sxpf
 
-// Form is a wrapper for a primitive or a user defined form / function.
-// Currently, only primitive functions are allowed.
-type Form struct {
-	name      string
-	primitive PrimForm
-	special   bool
+// Form is a value that can be called. Depending on IsSpecial, the arguments
+// are evaluated or not before calling the form.
+type Form interface {
+	Value
+
+	Call(Environment, []Value) (Value, error)
+	IsSpecial() bool
 }
 
-// PrimForm is a primitve form that is implemented in Go.
-type PrimForm func(Environment, []Value) (Value, error)
+// Builtin is a wrapper for a builtin function.
+type Builtin struct {
+	name    string
+	fn      BuiltinFn
+	special bool
+}
+
+// BuiltinFn is a builtin form that is implemented in Go.
+type BuiltinFn func(Environment, []Value) (Value, error)
 
 // NewPrimForm returns a new primitive form.
-func NewPrimForm(name string, special bool, f PrimForm) *Form {
-	return &Form{name, f, special}
+func NewPrimForm(name string, special bool, f BuiltinFn) *Builtin {
+	return &Builtin{name, f, special}
 }
 
-func (f *Form) Equal(other Value) bool {
-	if f == nil || other == nil {
-		return Value(f) == other
+func (b *Builtin) Equal(other Value) bool {
+	if b == nil || other == nil {
+		return Value(b) == other
 	}
-	if o, ok := other.(*Form); ok {
-		return f.name == o.name
+	if o, ok := other.(*Builtin); ok {
+		return b.name == o.name
 	}
 	return false
 }
 
-func (f *Form) String() string { return "#" + f.name }
+func (b *Builtin) String() string { return "#" + b.name }
 
-func (f *Form) IsSpecial() bool { return f != nil && f.special }
-func (f *Form) Name() string {
-	if f == nil {
+func (b *Builtin) IsSpecial() bool { return b != nil && b.special }
+func (b *Builtin) Name() string {
+	if b == nil {
 		return ""
 	}
-	return f.name
+	return b.name
 }
 
-func (f *Form) Call(env Environment, args []Value) (Value, error) {
-	return f.primitive(env, args)
+func (b *Builtin) Call(env Environment, args []Value) (Value, error) {
+	return b.fn(env, args)
 }

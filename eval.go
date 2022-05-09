@@ -15,7 +15,7 @@ import "fmt"
 // Environment provides methods to evaluate a s-expression.
 type Environment interface {
 	// LookupForm returns the form associated with the given symbol.
-	LookupForm(*Symbol) (*Form, error)
+	LookupForm(*Symbol) (Form, error)
 
 	// Evaluate the string. In many cases, strings evaluate to itself.
 	EvaluateString(*String) (Value, error)

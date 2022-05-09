@@ -58,7 +58,7 @@ func newTestEnv() *testEnv {
 	return &testEnv{symMap: symMap}
 }
 
-var testForms = []*sxpf.Form{
+var testForms = []*sxpf.Builtin{
 	sxpf.NewPrimForm(
 		"CAT",
 		false,
@@ -79,7 +79,7 @@ var testForms = []*sxpf.Form{
 	),
 }
 
-func (te *testEnv) LookupForm(sym *sxpf.Symbol) (*sxpf.Form, error) {
+func (te *testEnv) LookupForm(sym *sxpf.Symbol) (sxpf.Form, error) {
 	return te.symMap.LookupForm(sym)
 }
 
