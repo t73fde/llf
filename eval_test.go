@@ -59,7 +59,7 @@ func newTestEnv() *testEnv {
 }
 
 var testForms = []*sxpf.Builtin{
-	sxpf.NewPrimForm(
+	sxpf.NewBuiltin(
 		"CAT",
 		false, 0, -1,
 		func(env sxpf.Environment, args []sxpf.Value) (sxpf.Value, error) {
@@ -70,7 +70,7 @@ var testForms = []*sxpf.Builtin{
 			return sxpf.NewString(buf.String()), nil
 		},
 	),
-	sxpf.NewPrimForm(
+	sxpf.NewBuiltin(
 		"QUOTE",
 		true, 1, 1,
 		func(env sxpf.Environment, args []sxpf.Value) (sxpf.Value, error) {

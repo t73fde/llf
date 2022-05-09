@@ -33,8 +33,8 @@ type Builtin struct {
 // BuiltinFn is a builtin form that is implemented in Go.
 type BuiltinFn func(Environment, []Value) (Value, error)
 
-// NewPrimForm returns a new primitive form.
-func NewPrimForm(name string, special bool, minArity, maxArity int, f BuiltinFn) *Builtin {
+// NewBuiltin returns a new builtin form.
+func NewBuiltin(name string, special bool, minArity, maxArity int, f BuiltinFn) *Builtin {
 	return &Builtin{name, f, minArity, maxArity, special}
 }
 
