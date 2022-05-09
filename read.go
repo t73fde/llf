@@ -38,16 +38,27 @@ func ReadValue(env Environment, r Reader) (Value, error) {
 	return parseValue(env, r, ch)
 }
 
-func skipSpace(r Reader) (rune, error) {
+func skipSpace(r Reader) (ch rune, err error) {
 	for {
-		ch, _, err := r.ReadRune()
+		ch, _, err = r.ReadRune()
 		if err != nil {
 			return 0, err
 		}
 		if unicode.IsSpace(ch) {
 			continue
 		}
-		return ch, nil
+		if ch != ';' {
+			return ch, nil
+		}
+		for {
+			ch, _, err = r.ReadRune()
+			if err != nil {
+				return 0, err
+			}
+			if ch == '\n' || ch == '\r' {
+				break
+			}
+		}
 	}
 }
 
@@ -74,10 +85,8 @@ func parseSymbol(env Environment, r Reader, ch rune) (res Value, err error) {
 			return nil, err
 		}
 		switch ch {
-		case ')':
+		case '(', ')', '"', ';':
 			err = r.UnreadRune()
-			fallthrough
-		case '(', '"':
 			return env.MakeSymbol(buf.String()), err
 		}
 		if unicode.In(ch, unicode.Space, unicode.C) {

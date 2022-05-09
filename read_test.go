@@ -11,6 +11,8 @@
 package sxpf_test
 
 import (
+	"bytes"
+	"io"
 	"testing"
 
 	"github.com/t73fde/sxpf"
@@ -39,9 +41,14 @@ func TestReadString(t *testing.T) {
 		{"(a b c)", "(A B C)"},
 		{`("a" b "c")`, `("a" B "c")`},
 		{"(A ((b c) d) (e f))", "(A ((B C) D) (E F))"},
+		{"A; bla", "A"},
+		{"; bla\na", "A"},
+		{"; bla\n\r\n\na", "A"},
+		{"; bla\n; bla\na", "A"},
+		{"; bla\n\n; bla\na", "A"},
 	}
-	env := sxpf.NewTrivialEnvironment()
 	for i, tc := range testcases {
+		env := sxpf.NewTrivialEnvironment()
 		val, err := sxpf.ReadString(env, tc.src)
 		if err != nil {
 			t.Errorf("%d: ReadString(%q) resulted in error: %v", i, tc.src, err)
@@ -52,6 +59,47 @@ func TestReadString(t *testing.T) {
 			continue
 		}
 		got := val.String()
+		if tc.exp != got {
+			t.Errorf("%d: ReadString(%q) should return %q, but got %q", i, tc.src, tc.exp, got)
+		}
+	}
+}
+
+func TestReadMultiple(t *testing.T) {
+	testcases := []struct {
+		src string
+		exp string
+	}{
+		{"", ""},
+		{"A B", "A B"},
+		{" A  B ", "A B"},
+		{"(A)(B)", "(A) (B)"},
+		{" (A) (B) ", "(A) (B)"},
+		{"A;B\nC", "A C"},
+	}
+	for i, tc := range testcases {
+		var buf bytes.Buffer
+		env := sxpf.NewTrivialEnvironment()
+		reader := bytes.NewBufferString(tc.src)
+		for cnt := 0; ; cnt++ {
+			val, err := sxpf.ReadValue(env, reader)
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				t.Errorf("%d: ReadString(%q) resulted in error: %v", i, tc.src, err)
+				continue
+			}
+			if val == nil {
+				t.Errorf("%d: ReadString(%q) resulted in nil value", i, tc.src)
+				continue
+			}
+			if cnt > 0 {
+				buf.WriteByte((' '))
+			}
+			buf.WriteString(val.String())
+		}
+		got := buf.String()
 		if tc.exp != got {
 			t.Errorf("%d: ReadString(%q) should return %q, but got %q", i, tc.src, tc.exp, got)
 		}
