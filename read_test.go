@@ -40,8 +40,9 @@ func TestReadString(t *testing.T) {
 		{`("a" b "c")`, `("a" B "c")`},
 		{"(A ((b c) d) (e f))", "(A ((B C) D) (E F))"},
 	}
+	env := sxpf.NewTrivialEnvironment()
 	for i, tc := range testcases {
-		val, err := sxpf.ReadString(tc.src)
+		val, err := sxpf.ReadString(env, tc.src)
 		if err != nil {
 			t.Errorf("%d: ReadString(%q) resulted in error: %v", i, tc.src, err)
 			continue
@@ -58,8 +59,9 @@ func TestReadString(t *testing.T) {
 }
 
 func FuzzReadBytes(f *testing.F) {
+	env := sxpf.NewTrivialEnvironment()
 	f.Fuzz(func(t *testing.T, src []byte) {
 		t.Parallel()
-		sxpf.ReadBytes(src)
+		sxpf.ReadBytes(env, src)
 	})
 }

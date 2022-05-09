@@ -10,35 +10,11 @@
 
 package sxpf
 
-import (
-	"strings"
-	"sync"
-)
+import "strings"
 
 // Symbol is a value that identifies something.
 type Symbol struct {
 	val string
-}
-
-var (
-	symbolMx  sync.Mutex // protects symbolMap
-	symbolMap = map[string]*Symbol{}
-)
-
-// NewSymbol creates or reuses a symbol with the given string representation.
-func NewSymbol(symVal string) *Symbol {
-	if symVal == "" {
-		return nil
-	}
-	v := strings.ToUpper(symVal)
-	symbolMx.Lock()
-	result, found := symbolMap[v]
-	if !found {
-		result = &Symbol{v}
-		symbolMap[v] = result
-	}
-	symbolMx.Unlock()
-	return result
 }
 
 // GetValue returns the string value of the symbol.
@@ -56,3 +32,24 @@ func (sym *Symbol) Equal(other Value) bool {
 }
 
 func (sym *Symbol) String() string { return sym.val }
+
+// SymbolTable allows to create unique symbols.
+type SymbolTable struct {
+	m map[string]*Symbol
+}
+
+func NewSymbolTable() SymbolTable {
+	return SymbolTable{map[string]*Symbol{}}
+}
+
+func (st *SymbolTable) MakeSymbol(s string) *Symbol {
+	if s == "" {
+		return nil
+	}
+	sym, found := st.m[s]
+	if !found {
+		sym = &Symbol{strings.ToUpper(s)}
+		st.m[s] = sym
+	}
+	return sym
+}

@@ -14,6 +14,10 @@ import "fmt"
 
 // Environment provides methods to evaluate a s-expression.
 type Environment interface {
+	// MakeSymbol creates a new or uses an existing symbol with the given
+	// string value.
+	MakeSymbol(string) *Symbol
+
 	// LookupForm returns the form associated with the given symbol.
 	LookupForm(*Symbol) (Form, error)
 
@@ -29,6 +33,23 @@ type Environment interface {
 	// (possibly evaluated) as parameters.
 	EvaluateList(*List) (Value, error)
 }
+
+type trivialEnvironment struct {
+	symbols SymbolTable
+}
+
+// NewTrivialEnvironment creates a new Environment, that just makes symbols unique.
+// A lookup will fail, and all values evaluate to themself.
+func NewTrivialEnvironment() Environment {
+	return &trivialEnvironment{NewSymbolTable()}
+}
+func (env *trivialEnvironment) MakeSymbol(s string) *Symbol { return env.symbols.MakeSymbol(s) }
+func (*trivialEnvironment) LookupForm(sym *Symbol) (Form, error) {
+	return nil, ErrNotFormBound(sym)
+}
+func (*trivialEnvironment) EvaluateString(str *String) (Value, error) { return str, nil }
+func (*trivialEnvironment) EvaluateSymbol(sym *Symbol) (Value, error) { return sym, nil }
+func (*trivialEnvironment) EvaluateList(lst *List) (Value, error)     { return lst, nil }
 
 // Evaluate the given s-expression value in the given environment.
 func Evaluate(env Environment, value Value) (Value, error) {

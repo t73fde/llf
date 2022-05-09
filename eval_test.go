@@ -29,7 +29,7 @@ func TestEvaluate(t *testing.T) {
 	}
 	env := newTestEnv()
 	for i, tc := range testcases {
-		expr, err := sxpf.ReadString(tc.src)
+		expr, err := sxpf.ReadString(env, tc.src)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -47,15 +47,18 @@ func TestEvaluate(t *testing.T) {
 }
 
 type testEnv struct {
-	symMap *sxpf.SymbolMap
+	symbols sxpf.SymbolTable
+	symMap  *sxpf.SymbolMap
 }
 
 func newTestEnv() *testEnv {
+	env := testEnv{symbols: sxpf.NewSymbolTable()}
 	symMap := sxpf.NewSymbolMap(nil)
 	for _, form := range testForms {
-		symMap.Set(sxpf.NewSymbol(form.Name()), form)
+		symMap.Set(env.MakeSymbol(form.Name()), form)
 	}
-	return &testEnv{symMap: symMap}
+	env.symMap = symMap
+	return &env
 }
 
 var testForms = []*sxpf.Builtin{
@@ -79,14 +82,9 @@ var testForms = []*sxpf.Builtin{
 	),
 }
 
-func (te *testEnv) LookupForm(sym *sxpf.Symbol) (sxpf.Form, error) {
-	return te.symMap.LookupForm(sym)
-}
-
-func (*testEnv) EvaluateSymbol(sym *sxpf.Symbol) (sxpf.Value, error) {
-	return sym, nil
-}
-
+func (te *testEnv) MakeSymbol(s string) *sxpf.Symbol                 { return te.symbols.MakeSymbol(s) }
+func (te *testEnv) LookupForm(sym *sxpf.Symbol) (sxpf.Form, error)   { return te.symMap.LookupForm(sym) }
+func (*testEnv) EvaluateSymbol(sym *sxpf.Symbol) (sxpf.Value, error) { return sym, nil }
 func (*testEnv) EvaluateString(str *sxpf.String) (sxpf.Value, error) { return str, nil }
 func (e *testEnv) EvaluateList(lst *sxpf.List) (sxpf.Value, error) {
 	vals := lst.GetValue()

@@ -26,8 +26,9 @@ func TestSymbol(t *testing.T) {
 		{"", false, ""},
 		{"a", true, "A"},
 	}
+	env := sxpf.NewTrivialEnvironment()
 	for i, tc := range testcases {
-		s := sxpf.NewSymbol(tc.val)
+		s := env.MakeSymbol(tc.val)
 		if (s != nil) != tc.ok {
 			if s == nil {
 				t.Errorf("%d: NewSymbol(%q) must not be nil, but is", i, tc.val)
@@ -47,7 +48,7 @@ func TestSymbol(t *testing.T) {
 			t.Errorf("%d: %q is not equal to itself", i, got)
 		}
 
-		s2 := sxpf.NewSymbol(tc.val)
+		s2 := env.MakeSymbol(tc.val)
 		if s2 != s {
 			t.Errorf("%d: NewSymbol(%q) produces different values if called multiple times", i, tc.val)
 		}
@@ -55,9 +56,10 @@ func TestSymbol(t *testing.T) {
 }
 
 func FuzzSymbol(f *testing.F) {
+	env := sxpf.NewTrivialEnvironment()
 	f.Fuzz(func(t *testing.T, in string) {
 		t.Parallel()
-		s := sxpf.NewSymbol(in)
+		s := env.MakeSymbol(in)
 		if !s.Equal(s) {
 			if s == nil {
 				t.Errorf("nil symbol is not equal to itself")

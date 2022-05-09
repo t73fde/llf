@@ -17,12 +17,12 @@ import (
 	"unicode"
 )
 
-func ReadString(src string) (Value, error) {
-	return ReadValue(strings.NewReader(src))
+func ReadString(env Environment, src string) (Value, error) {
+	return ReadValue(env, strings.NewReader(src))
 }
 
-func ReadBytes(src []byte) (Value, error) {
-	return ReadValue(bytes.NewBuffer(src))
+func ReadBytes(env Environment, src []byte) (Value, error) {
+	return ReadValue(env, bytes.NewBuffer(src))
 }
 
 type Reader interface {
@@ -30,12 +30,12 @@ type Reader interface {
 	UnreadRune() error
 }
 
-func ReadValue(r Reader) (Value, error) {
+func ReadValue(env Environment, r Reader) (Value, error) {
 	ch, err := skipSpace(r)
 	if err != nil {
 		return nil, err
 	}
-	return parseValue(r, ch)
+	return parseValue(env, r, ch)
 }
 
 func skipSpace(r Reader) (rune, error) {
@@ -51,24 +51,24 @@ func skipSpace(r Reader) (rune, error) {
 	}
 }
 
-func parseValue(r Reader, ch rune) (Value, error) {
+func parseValue(env Environment, r Reader, ch rune) (Value, error) {
 	switch ch {
 	case '(':
-		return parseList(r)
+		return parseList(env, r)
 	case '"':
 		return parseString(r)
 	default: // Must be symbol
-		return parseSymbol(r, ch)
+		return parseSymbol(env, r, ch)
 	}
 }
 
-func parseSymbol(r Reader, ch rune) (res Value, err error) {
+func parseSymbol(env Environment, r Reader, ch rune) (res Value, err error) {
 	var buf bytes.Buffer
 	buf.WriteRune(ch)
 	for {
 		ch, _, err = r.ReadRune()
 		if err == io.EOF {
-			return NewSymbol(buf.String()), nil
+			return env.MakeSymbol(buf.String()), nil
 		}
 		if err != nil {
 			return nil, err
@@ -78,10 +78,10 @@ func parseSymbol(r Reader, ch rune) (res Value, err error) {
 			err = r.UnreadRune()
 			fallthrough
 		case '(', '"':
-			return NewSymbol(buf.String()), err
+			return env.MakeSymbol(buf.String()), err
 		}
 		if unicode.In(ch, unicode.Space, unicode.C) {
-			return NewSymbol(buf.String()), nil
+			return env.MakeSymbol(buf.String()), nil
 		}
 		buf.WriteRune(ch)
 	}
@@ -170,7 +170,7 @@ func flushRunes(buf *bytes.Buffer, arr *[8]rune, i int) error {
 	return nil
 }
 
-func parseList(r Reader) (Value, error) {
+func parseList(env Environment, r Reader) (Value, error) {
 	elems := []Value{}
 	for {
 		ch, err := skipSpace(r)
@@ -183,7 +183,7 @@ func parseList(r Reader) (Value, error) {
 		if ch == ')' {
 			return NewList(elems...), nil
 		}
-		val, err := parseValue(r, ch)
+		val, err := parseValue(env, r, ch)
 		if err != nil {
 			return nil, err
 		}

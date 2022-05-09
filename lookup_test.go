@@ -17,8 +17,9 @@ import (
 )
 
 func TestSymbolMapSexpr(t *testing.T) {
+	env := sxpf.NewTrivialEnvironment()
 	m := sxpf.NewSymbolMap(nil)
-	sym := sxpf.NewSymbol("map")
+	sym := env.MakeSymbol("map")
 	m.Set(sym, m) // A SymbolMap is itself a Sexpr
 	m1, found := m.Lookup(sym)
 	if !found {
@@ -29,15 +30,16 @@ func TestSymbolMapSexpr(t *testing.T) {
 }
 
 func TestSymbolMapPrint(t *testing.T) {
+	env := sxpf.NewTrivialEnvironment()
 	sm1 := sxpf.NewSymbolMap(nil)
-	sm1.Set(sxpf.NewSymbol("sym1"), sxpf.NewString("val1"))
+	sm1.Set(env.MakeSymbol("sym1"), sxpf.NewString("val1"))
 	got := sm1.String()
 	exp := `("symbol" ("parent" ()) (SYM1 "val1"))`
 	if exp != got {
 		t.Errorf("sm1:\nexpected: %v,\nbut got: %v", exp, got)
 	}
 	sm2 := sxpf.NewSymbolMap(sm1)
-	sm2.Set(sxpf.NewSymbol("sym2"), sxpf.NewString("val2"))
+	sm2.Set(env.MakeSymbol("sym2"), sxpf.NewString("val2"))
 	got = sm2.String()
 	exp = `("symbol" ("parent" ("symbol" ("parent" ()) (SYM1 "val1"))) (SYM2 "val2"))`
 	if exp != got {
