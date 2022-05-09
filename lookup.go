@@ -10,6 +10,8 @@
 
 package sxpf
 
+import "io"
+
 // SymbolMap maps symbols to values.
 type SymbolMap struct {
 	parent *SymbolMap
@@ -23,9 +25,8 @@ func NewSymbolMap(parentMap *SymbolMap) *SymbolMap {
 	}
 }
 
-// Add a symbol and its associated value.
-// If symbol was already associated with a value, this association is overwritten.
-func (sm *SymbolMap) Add(sym *Symbol, val Value) {
+// Set a symbol to its associated value.
+func (sm *SymbolMap) Set(sym *Symbol, val Value) {
 	sm.assoc[sym] = val
 }
 
@@ -48,4 +49,54 @@ func (sm *SymbolMap) LookupForm(sym *Symbol) (*Form, error) {
 		}
 	}
 	return nil, ErrNotFormBound(sym)
+}
+
+// Sexpr methods
+
+func (sm *SymbolMap) Equal(other Value) bool {
+	if sm == nil || other == nil {
+		return sm == other
+	}
+	o, ok := other.(*SymbolMap)
+	if !ok {
+		return false
+	}
+	if sm == o {
+		return true
+	}
+	if !sm.parent.Equal(o.parent) || len(sm.assoc) != len(o.assoc) {
+		return false
+	}
+	for sym, val := range sm.assoc {
+		if oval, found := o.assoc[sym]; !found || !val.Equal(oval) {
+			return false
+		}
+	}
+	return true
+}
+
+func (sm *SymbolMap) Encode(w io.Writer) (int, error) {
+	return io.WriteString(w, sm.String())
+}
+
+func (sm *SymbolMap) String() string {
+	return sm.AsList().String()
+}
+
+func (sm *SymbolMap) AsList() *List {
+	if sm == nil {
+		return Nil()
+	}
+	result := NewList(NewString("symbol"))
+	parent := NewList(NewString("parent"))
+	if sm.parent == nil {
+		parent.Append(Nil())
+	} else {
+		parent.Append(sm.parent.AsList())
+	}
+	result.Append(parent)
+	for sym, val := range sm.assoc {
+		result.Append(NewList(sym, val))
+	}
+	return result
 }

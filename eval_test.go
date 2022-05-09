@@ -53,7 +53,7 @@ type testEnv struct {
 func newTestEnv() *testEnv {
 	symMap := sxpf.NewSymbolMap(nil)
 	for _, form := range testForms {
-		symMap.Add(sxpf.NewSymbol(form.Name()), form)
+		symMap.Set(sxpf.NewSymbol(form.Name()), form)
 	}
 	return &testEnv{symMap: symMap}
 }
