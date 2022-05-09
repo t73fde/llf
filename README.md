@@ -13,6 +13,11 @@ Evaluation creates a third atom type, which currently cannot be encoded fully
 in a s-expression: forms (aka functions). Forms can be special, their
 arguments are not evaluated before calling the form.
 
+## Note
+
+* Cyclic structures are currently not supported. Creating them will likely
+  lead to a stack obverflow.
+
 ## Usage
 
 * [Zettelstore](https://zettelstore.de) and its [client
