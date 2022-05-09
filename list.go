@@ -10,10 +10,7 @@
 
 package sxpf
 
-import (
-	"bytes"
-	"io"
-)
+import "bytes"
 
 // List is a sequence of values, including sub-lists.
 type List struct {
@@ -98,34 +95,15 @@ var (
 	rParen = []byte{')'}
 )
 
-// Encode the list.
-func (lst *List) Encode(w io.Writer) (int, error) {
-	length, err := w.Write(lParen)
-	if err != nil {
-		return length, err
-	}
-	for i, val := range lst.val {
-		if i > 0 {
-			l, err2 := w.Write(space)
-			length += l
-			if err2 != nil {
-				return length, err2
-			}
-		}
-		l, err2 := val.Encode(w)
-		length += l
-		if err2 != nil {
-			return length, err2
-		}
-	}
-	l, err := w.Write(rParen)
-	return length + l, err
-}
-
 func (lst *List) String() string {
 	var buf bytes.Buffer
-	if _, err := lst.Encode(&buf); err != nil {
-		return err.Error()
+	buf.Write(lParen)
+	for i, val := range lst.val {
+		if i > 0 {
+			buf.Write(space)
+		}
+		buf.WriteString(val.String())
 	}
+	buf.Write(rParen)
 	return buf.String()
 }

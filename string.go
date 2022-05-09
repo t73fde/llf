@@ -10,10 +10,7 @@
 
 package sxpf
 
-import (
-	"bytes"
-	"io"
-)
+import "bytes"
 
 // String is a string value without any restrictions.
 type String struct {
@@ -48,12 +45,9 @@ var (
 	encHex       = []byte("0123456789ABCDEF")
 )
 
-// Encode the string value
-func (str *String) Encode(w io.Writer) (int, error) {
-	length, err := w.Write(quote)
-	if err != nil {
-		return length, err
-	}
+func (str *String) String() string {
+	var buf bytes.Buffer
+	buf.Write(quote)
 	last := 0
 	for i, ch := range str.val {
 		var b []byte
@@ -76,31 +70,11 @@ func (str *String) Encode(w io.Writer) (int, error) {
 			b[2] = encHex[ch>>4]
 			b[3] = encHex[ch&0xF]
 		}
-		l, err2 := io.WriteString(w, str.val[last:i])
-		length += l
-		if err2 != nil {
-			return length, err2
-		}
-		l, err2 = w.Write(b)
-		length += l
-		if err2 != nil {
-			return length, err2
-		}
+		buf.WriteString(str.val[last:i])
+		buf.Write(b)
 		last = i + 1
 	}
-	l, err := io.WriteString(w, str.val[last:])
-	length += l
-	if err != nil {
-		return length, err
-	}
-	l, err = w.Write(quote)
-	return length + l, err
-}
-
-func (str *String) String() string {
-	var buf bytes.Buffer
-	if _, err := str.Encode(&buf); err != nil {
-		return err.Error()
-	}
+	buf.WriteString(str.val[last:])
+	buf.Write(quote)
 	return buf.String()
 }

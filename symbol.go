@@ -11,7 +11,6 @@
 package sxpf
 
 import (
-	"io"
 	"strings"
 	"sync"
 )
@@ -56,8 +55,4 @@ func (sym *Symbol) Equal(other Value) bool {
 	return false
 }
 
-// Encode the symbol.
-func (sym *Symbol) Encode(w io.Writer) (int, error) {
-	return io.WriteString(w, sym.val)
-}
 func (sym *Symbol) String() string { return sym.val }

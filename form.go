@@ -10,8 +10,6 @@
 
 package sxpf
 
-import "io"
-
 // Form is a wrapper for a primitive or a user defined form / function.
 // Currently, only primitive functions are allowed.
 type Form struct {
@@ -37,8 +35,6 @@ func (f *Form) Equal(other Value) bool {
 	}
 	return false
 }
-
-func (f *Form) Encode(w io.Writer) (int, error) { return io.WriteString(w, f.String()) }
 
 func (f *Form) String() string { return "#" + f.name }
 

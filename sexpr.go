@@ -11,15 +11,11 @@
 // Package sxpf allows to work with symbolic expressions, s-expressions.
 package sxpf
 
-import (
-	"fmt"
-	"io"
-)
+import "fmt"
 
 // Value is a generic value, the set of all possible values of a s-expression.
 type Value interface {
 	Equal(Value) bool
-	Encode(io.Writer) (int, error)
 	String() string
 }
 

@@ -10,8 +10,6 @@
 
 package sxpf
 
-import "io"
-
 // SymbolMap maps symbols to values.
 type SymbolMap struct {
 	parent *SymbolMap
@@ -51,6 +49,25 @@ func (sm *SymbolMap) LookupForm(sym *Symbol) (*Form, error) {
 	return nil, ErrNotFormBound(sym)
 }
 
+// AsList returns a list representation of the symbol map.
+func (sm *SymbolMap) AsList() *List {
+	if sm == nil {
+		return Nil()
+	}
+	result := NewList(NewString("symbol"))
+	parent := NewList(NewString("parent"))
+	if sm.parent == nil {
+		parent.Append(Nil())
+	} else {
+		parent.Append(sm.parent.AsList())
+	}
+	result.Append(parent)
+	for sym, val := range sm.assoc {
+		result.Append(NewList(sym, val))
+	}
+	return result
+}
+
 // Sexpr methods
 
 func (sm *SymbolMap) Equal(other Value) bool {
@@ -75,28 +92,6 @@ func (sm *SymbolMap) Equal(other Value) bool {
 	return true
 }
 
-func (sm *SymbolMap) Encode(w io.Writer) (int, error) {
-	return io.WriteString(w, sm.String())
-}
-
 func (sm *SymbolMap) String() string {
 	return sm.AsList().String()
-}
-
-func (sm *SymbolMap) AsList() *List {
-	if sm == nil {
-		return Nil()
-	}
-	result := NewList(NewString("symbol"))
-	parent := NewList(NewString("parent"))
-	if sm.parent == nil {
-		parent.Append(Nil())
-	} else {
-		parent.Append(sm.parent.AsList())
-	}
-	result.Append(parent)
-	for sym, val := range sm.assoc {
-		result.Append(NewList(sym, val))
-	}
-	return result
 }

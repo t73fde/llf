@@ -11,7 +11,6 @@
 package sxpf_test
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/t73fde/sxpf"
@@ -69,7 +68,7 @@ func FuzzSymbol(f *testing.F) {
 	})
 }
 
-func TestStringEncode(t *testing.T) {
+func TestStringString(t *testing.T) {
 	t.Parallel()
 	testcases := []struct {
 		val string
@@ -80,7 +79,6 @@ func TestStringEncode(t *testing.T) {
 		{"\n", "\\n"},
 	}
 	for i, tc := range testcases {
-		var buf bytes.Buffer
 		s := sxpf.NewString(tc.val)
 		if s == nil {
 			t.Errorf("%d: NewString(%q) == nil", i, tc.val)
@@ -91,19 +89,14 @@ func TestStringEncode(t *testing.T) {
 			t.Errorf("%d: NewString(%q) changed value to %q", i, tc.val, sVal)
 			continue
 		}
-		length, err := s.Encode(&buf)
-		if err != nil {
-			t.Errorf("%d: Encode(%q) -> %v", i, tc.val, err)
-			continue
-		}
-		got := buf.String()
-		if length < 2 {
-			t.Errorf("%d: Encode(%q).Length < 2: %q (%d)", i, tc.val, got, length)
+		got := s.String()
+		if length := len(got); length < 2 {
+			t.Errorf("%d: len(String(%q)) < 2: %q (%d)", i, tc.val, got, length)
 			continue
 		}
 		exp := "\"" + tc.exp + "\""
 		if got != exp {
-			t.Errorf("%d: Encode(%q) expected %q, but got %q", i, tc.val, exp, got)
+			t.Errorf("%d: String(%q) expected %q, but got %q", i, tc.val, exp, got)
 		}
 	}
 }
