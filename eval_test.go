@@ -25,7 +25,7 @@ func TestEvaluate(t *testing.T) {
 		{"a", "A"},
 		{`"a"`, `"a"`},
 		{"(CAT a b)", `"AB"`},
-		{"(QUOTE (A b) c)", "((A B) C)"},
+		{"(QUOTE ((A b) c))", "((A B) C)"},
 	}
 	env := newTestEnv()
 	for i, tc := range testcases {
@@ -61,7 +61,7 @@ func newTestEnv() *testEnv {
 var testForms = []*sxpf.Builtin{
 	sxpf.NewPrimForm(
 		"CAT",
-		false,
+		false, 0, -1,
 		func(env sxpf.Environment, args []sxpf.Value) (sxpf.Value, error) {
 			var buf bytes.Buffer
 			for _, arg := range args {
@@ -72,9 +72,9 @@ var testForms = []*sxpf.Builtin{
 	),
 	sxpf.NewPrimForm(
 		"QUOTE",
-		true,
+		true, 1, 1,
 		func(env sxpf.Environment, args []sxpf.Value) (sxpf.Value, error) {
-			return sxpf.NewList(args...), nil
+			return args[0], nil
 		},
 	),
 }

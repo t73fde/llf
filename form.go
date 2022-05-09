@@ -10,6 +10,8 @@
 
 package sxpf
 
+import "fmt"
+
 // Form is a value that can be called. Depending on IsSpecial, the arguments
 // are evaluated or not before calling the form.
 type Form interface {
@@ -21,17 +23,19 @@ type Form interface {
 
 // Builtin is a wrapper for a builtin function.
 type Builtin struct {
-	name    string
-	fn      BuiltinFn
-	special bool
+	name     string
+	fn       BuiltinFn
+	minArity int
+	maxArity int // if maxArity < minArity ==> maxArity is unlimited
+	special  bool
 }
 
 // BuiltinFn is a builtin form that is implemented in Go.
 type BuiltinFn func(Environment, []Value) (Value, error)
 
 // NewPrimForm returns a new primitive form.
-func NewPrimForm(name string, special bool, f BuiltinFn) *Builtin {
-	return &Builtin{name, f, special}
+func NewPrimForm(name string, special bool, minArity, maxArity int, f BuiltinFn) *Builtin {
+	return &Builtin{name, f, minArity, maxArity, special}
 }
 
 func (b *Builtin) Equal(other Value) bool {
@@ -55,5 +59,10 @@ func (b *Builtin) Name() string {
 }
 
 func (b *Builtin) Call(env Environment, args []Value) (Value, error) {
+	if length := len(args); length < b.minArity {
+		return nil, fmt.Errorf("not enough arguments (%d) for form %v (%d)", length, b.name, b.minArity)
+	} else if b.minArity <= b.maxArity && b.maxArity < length {
+		return nil, fmt.Errorf("too many arguments (%d) for form %v (%d)", length, b.name, b.maxArity)
+	}
 	return b.fn(env, args)
 }
