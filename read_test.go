@@ -33,7 +33,7 @@ func TestReadString(t *testing.T) {
 		{`"\t"`, `"\t"`},
 		{`"\r"`, `"\r"`},
 		{`"\n"`, `"\n"`},
-		{`"\x"`, `"x"`}, {`"\x4"`, `"x4"`}, {`"\x41"`, `"A"`},
+		{`"\x"`, `"x"`}, {`"\x4"`, `"x4"`}, {`"\x41"`, `"A"`}, {`"\x4g"`, `"x4g"`},
 		{`"\u"`, `"u"`}, {`"\u0"`, `"u0"`}, {`"\u00"`, `"u00"`}, {`"\u004"`, `"u004"`}, {`"\u0042"`, `"B"`},
 		{`"\U"`, `"U"`}, {`"\U0"`, `"U0"`}, {`"\U00"`, `"U00"`}, {`"\U000"`, `"U000"`}, {`"\U0000"`, `"U0000"`},
 		{`"\U00004"`, `"U00004"`}, {`"\U000043"`, `"C"`},
@@ -108,7 +108,7 @@ func TestReadMultiple(t *testing.T) {
 	}
 }
 
-func TestReadWithError(t *testing.T) {
+func TestReadBytesWithError(t *testing.T) {
 	testcases := []struct {
 		src string
 		msg string
@@ -118,14 +118,20 @@ func TestReadWithError(t *testing.T) {
 		{"(", sxpf.ErrMissingCloseParenthesis.Error()},
 		{")", sxpf.ErrMissingOpenParenthesis.Error()},
 		{"())", sxpf.ErrMissingEOF.Error()}, // b/c "()" is already an expression
-		{`"a`, sxpf.ErrMissingQuote.Error()},
+		{`("`, sxpf.ErrMissingQuote.Error()},
+		{`(")`, sxpf.ErrMissingQuote.Error()},
+		{`(")()`, sxpf.ErrMissingQuote.Error()},
 		{`"`, sxpf.ErrMissingQuote.Error()},
+		{`"a`, sxpf.ErrMissingQuote.Error()},
 		{`"\`, sxpf.ErrMissingQuote.Error()},
 		{`"\"`, sxpf.ErrMissingQuote.Error()},
+		{`"\x`, sxpf.ErrMissingQuote.Error()},
+		{`"\x1`, sxpf.ErrMissingQuote.Error()},
+		{`"\x11`, sxpf.ErrMissingQuote.Error()},
 	}
 	for i, tc := range testcases {
 		env := sxpf.NewTrivialEnvironment()
-		val, err := sxpf.ReadString(env, tc.src)
+		val, err := sxpf.ReadBytes(env, []byte(tc.src))
 		if err == nil {
 			t.Errorf("%d: ReadString(%q) should result in error, but got value of type %T: %v", i, tc.src, val, val)
 			continue

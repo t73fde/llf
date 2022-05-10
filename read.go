@@ -102,7 +102,10 @@ func parseValue(env Environment, r Reader, ch rune) (Value, error) {
 
 func parseSymbol(env Environment, r Reader, ch rune) (res Value, err error) {
 	var buf bytes.Buffer
-	buf.WriteRune(ch)
+	_, err = buf.WriteRune(ch)
+	if err != nil {
+		return nil, err
+	}
 	for {
 		ch, _, err = r.ReadRune()
 		if err == io.EOF {
@@ -119,7 +122,10 @@ func parseSymbol(env Environment, r Reader, ch rune) (res Value, err error) {
 		if unicode.In(ch, unicode.Space, unicode.C) {
 			return env.MakeSymbol(buf.String()), nil
 		}
-		buf.WriteRune(ch)
+		_, err = buf.WriteRune(ch)
+		if err != nil {
+			return nil, err
+		}
 	}
 }
 
@@ -160,11 +166,11 @@ func parseString(r Reader) (Value, error) {
 			default:
 				_, err = buf.WriteRune(ch)
 			}
-			if err != nil {
-				return nil, err
-			}
 		default:
-			buf.WriteRune(ch)
+			_, err = buf.WriteRune(ch)
+		}
+		if err != nil {
+			return nil, err
 		}
 	}
 }
@@ -182,6 +188,9 @@ func parseRune(r Reader, buf *bytes.Buffer, curCh rune, numDigits int) error {
 	for i := 0; i < numDigits; i++ {
 		ch, _, err := r.ReadRune()
 		if err != nil {
+			if err == io.EOF {
+				return ErrMissingQuote
+			}
 			return err
 		}
 		if ch == '"' {
@@ -227,9 +236,6 @@ func parseList(env Environment, r Reader) (Value, error) {
 		}
 		val, err := parseValue(env, r, ch)
 		if err != nil {
-			if err == io.EOF {
-				return nil, ErrMissingCloseParenthesis
-			}
 			return nil, err
 		}
 		elems = append(elems, val)
