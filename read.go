@@ -30,20 +30,20 @@ var ErrMissingQuote = errors.New("missing quote character")
 // ErrMissing EOF is raised if there is additional input after an expression.
 var ErrMissingEOF = errors.New("missing end of input")
 
-func ReadString(env Environment, src string) (Value, error) {
-	return consumeReader(env, strings.NewReader(src))
+func ReadString(smk SymbolMaker, src string) (Value, error) {
+	return consumeReader(smk, strings.NewReader(src))
 }
 
-func ReadBytes(env Environment, src []byte) (Value, error) {
-	return consumeReader(env, bytes.NewBuffer(src))
+func ReadBytes(smk SymbolMaker, src []byte) (Value, error) {
+	return consumeReader(smk, bytes.NewBuffer(src))
 }
 
-func consumeReader(env Environment, r Reader) (Value, error) {
-	val, err := ReadValue(env, r)
+func consumeReader(smk SymbolMaker, r Reader) (Value, error) {
+	val, err := ReadValue(smk, r)
 	if err != nil {
 		return val, err
 	}
-	_, err = ReadValue(env, r)
+	_, err = ReadValue(smk, r)
 	if err == io.EOF {
 		return val, nil
 	}
@@ -55,12 +55,12 @@ type Reader interface {
 	UnreadRune() error
 }
 
-func ReadValue(env Environment, r Reader) (Value, error) {
+func ReadValue(smk SymbolMaker, r Reader) (Value, error) {
 	ch, err := skipSpace(r)
 	if err != nil {
 		return nil, err
 	}
-	return parseValue(env, r, ch)
+	return parseValue(smk, r, ch)
 }
 
 func skipSpace(r Reader) (ch rune, err error) {
@@ -87,20 +87,20 @@ func skipSpace(r Reader) (ch rune, err error) {
 	}
 }
 
-func parseValue(env Environment, r Reader, ch rune) (Value, error) {
+func parseValue(smk SymbolMaker, r Reader, ch rune) (Value, error) {
 	switch ch {
 	case '(':
-		return parseList(env, r)
+		return parseList(smk, r)
 	case '"':
 		return parseString(r)
 	case ')':
 		return nil, ErrMissingOpenParenthesis
 	default: // Must be symbol
-		return parseSymbol(env, r, ch)
+		return parseSymbol(smk, r, ch)
 	}
 }
 
-func parseSymbol(env Environment, r Reader, ch rune) (res Value, err error) {
+func parseSymbol(smk SymbolMaker, r Reader, ch rune) (res Value, err error) {
 	var buf bytes.Buffer
 	_, err = buf.WriteRune(ch)
 	if err != nil {
@@ -109,7 +109,7 @@ func parseSymbol(env Environment, r Reader, ch rune) (res Value, err error) {
 	for {
 		ch, _, err = r.ReadRune()
 		if err == io.EOF {
-			return env.MakeSymbol(buf.String()), nil
+			return smk.MakeSymbol(buf.String()), nil
 		}
 		if err != nil {
 			return nil, err
@@ -117,10 +117,10 @@ func parseSymbol(env Environment, r Reader, ch rune) (res Value, err error) {
 		switch ch {
 		case '(', ')', '"', ';':
 			err = r.UnreadRune()
-			return env.MakeSymbol(buf.String()), err
+			return smk.MakeSymbol(buf.String()), err
 		}
 		if unicode.In(ch, unicode.Space, unicode.C) {
-			return env.MakeSymbol(buf.String()), nil
+			return smk.MakeSymbol(buf.String()), nil
 		}
 		_, err = buf.WriteRune(ch)
 		if err != nil {
@@ -221,7 +221,7 @@ func flushRunes(buf *bytes.Buffer, arr *[8]rune, i int) error {
 	return nil
 }
 
-func parseList(env Environment, r Reader) (Value, error) {
+func parseList(smk SymbolMaker, r Reader) (Value, error) {
 	elems := []Value{}
 	for {
 		ch, err := skipSpace(r)
@@ -234,7 +234,7 @@ func parseList(env Environment, r Reader) (Value, error) {
 		if ch == ')' {
 			return NewList(elems...), nil
 		}
-		val, err := parseValue(env, r, ch)
+		val, err := parseValue(smk, r, ch)
 		if err != nil {
 			return nil, err
 		}

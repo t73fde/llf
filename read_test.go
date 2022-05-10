@@ -50,8 +50,8 @@ func TestReadString(t *testing.T) {
 		{"; bla\n\n; bla\na", "A"},
 	}
 	for i, tc := range testcases {
-		env := sxpf.NewTrivialEnvironment()
-		val, err := sxpf.ReadString(env, tc.src)
+		smk := sxpf.NewTrivialSymbolMaker()
+		val, err := sxpf.ReadString(smk, tc.src)
 		if err != nil {
 			t.Errorf("%d: ReadString(%q) resulted in error: %v", i, tc.src, err)
 			continue
@@ -81,10 +81,10 @@ func TestReadMultiple(t *testing.T) {
 	}
 	for i, tc := range testcases {
 		var buf bytes.Buffer
-		env := sxpf.NewTrivialEnvironment()
+		smk := sxpf.NewTrivialSymbolMaker()
 		reader := bytes.NewBufferString(tc.src)
 		for cnt := 0; ; cnt++ {
-			val, err := sxpf.ReadValue(env, reader)
+			val, err := sxpf.ReadValue(smk, reader)
 			if err == io.EOF {
 				break
 			}
@@ -130,8 +130,8 @@ func TestReadBytesWithError(t *testing.T) {
 		{`"\x11`, sxpf.ErrMissingQuote.Error()},
 	}
 	for i, tc := range testcases {
-		env := sxpf.NewTrivialEnvironment()
-		val, err := sxpf.ReadBytes(env, []byte(tc.src))
+		smk := sxpf.NewTrivialSymbolMaker()
+		val, err := sxpf.ReadBytes(smk, []byte(tc.src))
 		if err == nil {
 			t.Errorf("%d: ReadString(%q) should result in error, but got value of type %T: %v", i, tc.src, val, val)
 			continue
@@ -144,9 +144,9 @@ func TestReadBytesWithError(t *testing.T) {
 }
 
 func FuzzReadBytes(f *testing.F) {
-	env := sxpf.NewTrivialEnvironment()
+	smk := sxpf.NewTrivialSymbolMaker()
 	f.Fuzz(func(t *testing.T, src []byte) {
 		t.Parallel()
-		sxpf.ReadBytes(env, src)
+		sxpf.ReadBytes(smk, src)
 	})
 }
