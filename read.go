@@ -12,17 +12,42 @@ package sxpf
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"strings"
 	"unicode"
 )
 
+// ErrMissingOpenParenthesis is raised if there is one additional closing parenthesis.
+var ErrMissingOpenParenthesis = errors.New("missing opening parenthesis")
+
+// ErrMissingCloseParenthesisis raised if there is one additonal openiing parenthesis.
+var ErrMissingCloseParenthesis = errors.New("missing closing parenthesis")
+
+// ErrMissingQuote is raised if there is no closing quote character.
+var ErrMissingQuote = errors.New("missing quote character")
+
+// ErrMissing EOF is raised if there is additional input after an expression.
+var ErrMissingEOF = errors.New("missing end of input")
+
 func ReadString(env Environment, src string) (Value, error) {
-	return ReadValue(env, strings.NewReader(src))
+	return consumeReader(env, strings.NewReader(src))
 }
 
 func ReadBytes(env Environment, src []byte) (Value, error) {
-	return ReadValue(env, bytes.NewBuffer(src))
+	return consumeReader(env, bytes.NewBuffer(src))
+}
+
+func consumeReader(env Environment, r Reader) (Value, error) {
+	val, err := ReadValue(env, r)
+	if err != nil {
+		return val, err
+	}
+	_, err = ReadValue(env, r)
+	if err == io.EOF {
+		return val, nil
+	}
+	return val, ErrMissingEOF
 }
 
 type Reader interface {
@@ -68,6 +93,8 @@ func parseValue(env Environment, r Reader, ch rune) (Value, error) {
 		return parseList(env, r)
 	case '"':
 		return parseString(r)
+	case ')':
+		return nil, ErrMissingOpenParenthesis
 	default: // Must be symbol
 		return parseSymbol(env, r, ch)
 	}
@@ -101,6 +128,9 @@ func parseString(r Reader) (Value, error) {
 	for {
 		ch, _, err := r.ReadRune()
 		if err != nil {
+			if err == io.EOF {
+				return nil, ErrMissingQuote
+			}
 			return nil, err
 		}
 		switch ch {
@@ -109,6 +139,9 @@ func parseString(r Reader) (Value, error) {
 		case '\\':
 			ch, _, err = r.ReadRune()
 			if err != nil {
+				if err == io.EOF {
+					return nil, ErrMissingQuote
+				}
 				return nil, err
 			}
 			switch ch {
@@ -184,9 +217,9 @@ func parseList(env Environment, r Reader) (Value, error) {
 	for {
 		ch, err := skipSpace(r)
 		if err != nil {
-			return nil, err
-		}
-		if err != nil {
+			if err == io.EOF {
+				return nil, ErrMissingCloseParenthesis
+			}
 			return nil, err
 		}
 		if ch == ')' {
@@ -194,6 +227,9 @@ func parseList(env Environment, r Reader) (Value, error) {
 		}
 		val, err := parseValue(env, r, ch)
 		if err != nil {
+			if err == io.EOF {
+				return nil, ErrMissingCloseParenthesis
+			}
 			return nil, err
 		}
 		elems = append(elems, val)

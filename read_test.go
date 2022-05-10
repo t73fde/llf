@@ -24,6 +24,8 @@ func TestReadString(t *testing.T) {
 		exp string
 	}{
 		{"a", "A"},
+		{"a ", "A"},
+		{"a ; comment", "A"},
 		{`""`, `""`},
 		{`"a"`, `"a"`},
 		{`"\""`, `"\""`},
@@ -102,6 +104,35 @@ func TestReadMultiple(t *testing.T) {
 		got := buf.String()
 		if tc.exp != got {
 			t.Errorf("%d: ReadString(%q) should return %q, but got %q", i, tc.src, tc.exp, got)
+		}
+	}
+}
+
+func TestReadWithError(t *testing.T) {
+	testcases := []struct {
+		src string
+		msg string
+	}{
+		{"A B", sxpf.ErrMissingEOF.Error()},
+		{"(A", sxpf.ErrMissingCloseParenthesis.Error()},
+		{"(", sxpf.ErrMissingCloseParenthesis.Error()},
+		{")", sxpf.ErrMissingOpenParenthesis.Error()},
+		{"())", sxpf.ErrMissingEOF.Error()}, // b/c "()" is already an expression
+		{`"a`, sxpf.ErrMissingQuote.Error()},
+		{`"`, sxpf.ErrMissingQuote.Error()},
+		{`"\`, sxpf.ErrMissingQuote.Error()},
+		{`"\"`, sxpf.ErrMissingQuote.Error()},
+	}
+	for i, tc := range testcases {
+		env := sxpf.NewTrivialEnvironment()
+		val, err := sxpf.ReadString(env, tc.src)
+		if err == nil {
+			t.Errorf("%d: ReadString(%q) should result in error, but got value of type %T: %v", i, tc.src, val, val)
+			continue
+		}
+		got := err.Error()
+		if got != tc.msg {
+			t.Errorf("%d: ReadString(%q) should result in error %q, but got %q", i, tc.src, tc.msg, got)
 		}
 	}
 }
