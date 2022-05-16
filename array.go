@@ -12,19 +12,19 @@ package sxpf
 
 import "bytes"
 
-// List is a sequence of values, including sub-lists.
-type List struct {
+// Array is a sequence of values, including sub-arrays.
+type Array struct {
 	val    []Value
 	frozen bool
 }
 
-// Nil is the defined value for an empty list.
-func Nil() *List { return &myNIL }
+// Nil is the defined value for an empty array.
+func Nil() *Array { return &myNIL }
 
-var myNIL = List{val: []Value{}, frozen: true}
+var myNIL = Array{val: []Value{}, frozen: true}
 
-// NewList creates a new list with the given values.
-func NewList(lstVal ...Value) *List {
+// NewArray creates a new array with the given values.
+func NewArray(lstVal ...Value) *Array {
 	if len(lstVal) == 0 {
 		return Nil()
 	}
@@ -33,11 +33,11 @@ func NewList(lstVal ...Value) *List {
 			return Nil()
 		}
 	}
-	return &List{lstVal, false}
+	return &Array{lstVal, false}
 }
 
-// Append some more value to a list.
-func (lst *List) Append(lstVal ...Value) {
+// Append some more value to an array.
+func (lst *Array) Append(lstVal ...Value) {
 	if lst.frozen {
 		return
 	}
@@ -49,8 +49,8 @@ func (lst *List) Append(lstVal ...Value) {
 	lst.val = append(lst.val, lstVal...)
 }
 
-// Extend the list by another
-func (lst *List) Extend(o *List) {
+// Extend the array by another
+func (lst *Array) Extend(o *Array) {
 	if lst.frozen {
 		return
 	}
@@ -64,8 +64,8 @@ func (lst *List) Extend(o *List) {
 	}
 }
 
-// GetValue returns the list value.
-func (lst *List) GetValue() []Value {
+// GetValue returns the array value as a slice of Values.
+func (lst *Array) GetValue() []Value {
 	if lst == nil {
 		return nil
 	}
@@ -73,11 +73,11 @@ func (lst *List) GetValue() []Value {
 }
 
 // Equal retruns true if the other value is equal to this one.
-func (lst *List) Equal(other Value) bool {
+func (lst *Array) Equal(other Value) bool {
 	if lst == nil || other == nil {
 		return lst == other
 	}
-	o, ok := other.(*List)
+	o, ok := other.(*Array)
 	if !ok || len(lst.val) != len(o.val) {
 		return false
 	}
@@ -95,7 +95,7 @@ var (
 	rParen = []byte{')'}
 )
 
-func (lst *List) String() string {
+func (lst *Array) String() string {
 	var buf bytes.Buffer
 	buf.Write(lParen)
 	for i, val := range lst.val {

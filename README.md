@@ -5,7 +5,7 @@ This is a small framework to work with simple
 some other implementations, there are two types of atoms: symbols and string.
 Symbols are case-insensitive, a string may contains any sequence of unicode
 characters, using UTF-8 encoding. An expression of the form `()`, `(A)`, `(A
-B)`, ..., is a list, where A and B are s-expressions. There is no pair type.
+B)`, ..., is an array, where A and B are s-expressions. There is no pair type.
 
 The framework contains types, functions, and methods to create s-expressions,
 to encode them as a string, to write them somewhere, and to evaluate them.

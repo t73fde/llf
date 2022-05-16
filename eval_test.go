@@ -86,7 +86,7 @@ func (te *testEnv) MakeSymbol(s string) *sxpf.Symbol                 { return te
 func (te *testEnv) LookupForm(sym *sxpf.Symbol) (sxpf.Form, error)   { return te.symMap.LookupForm(sym) }
 func (*testEnv) EvaluateSymbol(sym *sxpf.Symbol) (sxpf.Value, error) { return sym, nil }
 func (*testEnv) EvaluateString(str *sxpf.String) (sxpf.Value, error) { return str, nil }
-func (e *testEnv) EvaluateList(lst *sxpf.List) (sxpf.Value, error) {
+func (e *testEnv) EvaluateArray(lst *sxpf.Array) (sxpf.Value, error) {
 	vals := lst.GetValue()
 	res, err, done := sxpf.EvaluateCall(e, vals)
 	if done {
@@ -96,5 +96,5 @@ func (e *testEnv) EvaluateList(lst *sxpf.List) (sxpf.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	return sxpf.NewList(result...), nil
+	return sxpf.NewArray(result...), nil
 }

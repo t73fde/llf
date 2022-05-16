@@ -44,15 +44,15 @@ func GetString(args []Value, idx int) (string, error) {
 	return "", fmt.Errorf("%v / %d is not a string", args[idx], idx)
 }
 
-// GetList returns the idx value of args as a List.
-func GetList(args []Value, idx int) (*List, error) {
+// GetArray returns the idx value of args as an array.
+func GetArray(args []Value, idx int) (*Array, error) {
 	if idx < 0 || len(args) <= idx {
 		return nil, makeErrIndexOutOfBounds(args, idx)
 	}
-	if val, ok := args[idx].(*List); ok {
+	if val, ok := args[idx].(*Array); ok {
 		return val, nil
 	}
-	return nil, fmt.Errorf("%v / %d is not a list", args[idx], idx)
+	return nil, fmt.Errorf("%v / %d is not an array", args[idx], idx)
 }
 
 func makeErrIndexOutOfBounds(args []Value, idx int) error {

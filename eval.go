@@ -40,10 +40,10 @@ type Environment interface {
 	// found in some internal lookup tables.
 	EvaluateSymbol(*Symbol) (Value, error)
 
-	// Evaluate the given list. In many cases this means to evaluate the first
+	// Evaluate the given array. In many cases this means to evaluate the first
 	// element to a form and then call the form with the remaning elements
 	// (possibly evaluated) as parameters.
-	EvaluateList(*List) (Value, error)
+	EvaluateArray(*Array) (Value, error)
 }
 
 // Evaluate the given s-expression value in the given environment.
@@ -53,8 +53,8 @@ func Evaluate(env Environment, value Value) (Value, error) {
 		return env.EvaluateSymbol(val)
 	case *String:
 		return env.EvaluateString(val)
-	case *List:
-		return env.EvaluateList(val)
+	case *Array:
+		return env.EvaluateArray(val)
 	default:
 		// Other types evaluate to themself
 		return value, nil

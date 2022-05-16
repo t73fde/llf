@@ -90,7 +90,7 @@ func skipSpace(r Reader) (ch rune, err error) {
 func parseValue(smk SymbolMaker, r Reader, ch rune) (Value, error) {
 	switch ch {
 	case '(':
-		return parseList(smk, r)
+		return parseArray(smk, r)
 	case '"':
 		return parseString(r)
 	case ')':
@@ -221,7 +221,7 @@ func flushRunes(buf *bytes.Buffer, arr *[8]rune, i int) error {
 	return nil
 }
 
-func parseList(smk SymbolMaker, r Reader) (Value, error) {
+func parseArray(smk SymbolMaker, r Reader) (Value, error) {
 	elems := []Value{}
 	for {
 		ch, err := skipSpace(r)
@@ -232,7 +232,7 @@ func parseList(smk SymbolMaker, r Reader) (Value, error) {
 			return nil, err
 		}
 		if ch == ')' {
-			return NewList(elems...), nil
+			return NewArray(elems...), nil
 		}
 		val, err := parseValue(smk, r, ch)
 		if err != nil {
