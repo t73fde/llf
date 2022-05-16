@@ -95,10 +95,14 @@ func skipSpace(r Reader) (ch rune, err error) {
 
 func parseValue(smk SymbolMaker, r Reader, ch rune) (Value, error) {
 	switch ch {
+	case '(':
+		return parseList(smk, r)
 	case '[':
 		return parseArray(smk, r)
 	case '"':
 		return parseString(r)
+	case ')', '.':
+		return nil, ErrMissingOpenParenthesis
 	case ']':
 		return nil, ErrMissingOpenBracket
 	default: // Must be symbol
@@ -121,7 +125,7 @@ func parseSymbol(smk SymbolMaker, r Reader, ch rune) (res Value, err error) {
 			return nil, err
 		}
 		switch ch {
-		case '[', ']', '"', ';':
+		case '(', ')', '[', ']', '"', ';', '.':
 			err = r.UnreadRune()
 			return smk.MakeSymbol(buf.String()), err
 		}
@@ -252,4 +256,62 @@ func parseArray(smk SymbolMaker, r Reader) (Value, error) {
 		}
 		elems = append(elems, val)
 	}
+}
+
+func parseList(smk SymbolMaker, r Reader) (Value, error) {
+	elems := []Value{}
+	for {
+		ch, err := skipSpace(r)
+		if err != nil {
+			if err == io.EOF {
+				return nil, ErrMissingCloseParenthesis
+			}
+			return nil, err
+		}
+		if ch == ')' {
+			p := Nil()
+			for i := len(elems) - 1; i >= 0; i-- {
+				p = NewPair(elems[i], p)
+			}
+			return p, nil
+		}
+		if ch == '.' {
+			if len(elems) == 0 {
+				return nil, ErrMissingCloseParenthesis
+			}
+			break
+		}
+		val, err := parseValue(smk, r, ch)
+		if err != nil {
+			return nil, err
+		}
+		elems = append(elems, val)
+	}
+
+	ch, err := skipSpace(r)
+	if err != nil {
+		if err == io.EOF {
+			return nil, ErrMissingCloseParenthesis
+		}
+		return nil, err
+	}
+	val, err := parseValue(smk, r, ch)
+	if err != nil {
+		return nil, err
+	}
+	ch, err = skipSpace(r)
+	if err != nil {
+		if err == io.EOF {
+			return nil, ErrMissingCloseParenthesis
+		}
+		return nil, err
+	}
+	if ch != ')' {
+		return nil, ErrMissingCloseParenthesis
+	}
+	p := NewPair(elems[len(elems)-1], val)
+	for i := len(elems) - 2; i >= 0; i-- {
+		p = NewPair(elems[i], p)
+	}
+	return p, nil
 }

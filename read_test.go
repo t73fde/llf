@@ -37,12 +37,27 @@ func TestReadString(t *testing.T) {
 		{`"\u"`, `"u"`}, {`"\u0"`, `"u0"`}, {`"\u00"`, `"u00"`}, {`"\u004"`, `"u004"`}, {`"\u0042"`, `"B"`},
 		{`"\U"`, `"U"`}, {`"\U0"`, `"U0"`}, {`"\U00"`, `"U00"`}, {`"\U000"`, `"U000"`}, {`"\U0000"`, `"U0000"`},
 		{`"\U00004"`, `"U00004"`}, {`"\U000043"`, `"C"`},
+
+		{"()", "()"},
+		{"(a)", "(A)"},
+		{"((a))", "((A))"},
+		{"(a b c)", "(A B C)"},
+		{"(a b . c)", "(A B . C)"},
+		{`("a" b "c")`, `("a" B "c")`},
+		{`("a" "b" "c")`, `("a" "b" "c")`},
+		{`("a""b""c")`, `("a" "b" "c")`},
+		{"(A ((b c) d) (e f))", "(A ((B C) D) (E F))"},
+		{"(A.B)", "(A . B)"},
+		{`("A"."B")`, `("A" . "B")`},
+		{`("A".b)`, `("A" . B)`},
+
 		{"[]", "[]"},
 		{"[a]", "[A]"},
 		{"[[a]]", "[[A]]"},
 		{"[a b c]", "[A B C]"},
 		{`["a" b "c"]`, `["a" B "c"]`},
 		{"[A [[b c] d] [e f]]", "[A [[B C] D] [E F]]"},
+
 		{"A; bla", "A"},
 		{"; bla\na", "A"},
 		{"; bla\n\r\n\na", "A"},
@@ -114,13 +129,24 @@ func TestReadBytesWithError(t *testing.T) {
 		msg string
 	}{
 		{"A B", sxpf.ErrMissingEOF.Error()},
+
+		{"(A", sxpf.ErrMissingCloseParenthesis.Error()},
+		{"(", sxpf.ErrMissingCloseParenthesis.Error()},
+		{")", sxpf.ErrMissingOpenParenthesis.Error()},
+		{"())", sxpf.ErrMissingEOF.Error()}, // b/c "()" is already an expression
+		{`("`, sxpf.ErrMissingQuote.Error()},
+		{`(")`, sxpf.ErrMissingQuote.Error()},
+		{`(")()`, sxpf.ErrMissingQuote.Error()},
+		{"(.A)", sxpf.ErrMissingCloseParenthesis.Error()},
+
 		{"[A", sxpf.ErrMissingCloseBracket.Error()},
 		{"[", sxpf.ErrMissingCloseBracket.Error()},
 		{"]", sxpf.ErrMissingOpenBracket.Error()},
-		{"[]]", sxpf.ErrMissingEOF.Error()}, // b/c "()" is already an expression
+		{"[]]", sxpf.ErrMissingEOF.Error()}, // b/c "[]" is already an expression
 		{`["`, sxpf.ErrMissingQuote.Error()},
-		{`[")`, sxpf.ErrMissingQuote.Error()},
+		{`["]`, sxpf.ErrMissingQuote.Error()},
 		{`["][]`, sxpf.ErrMissingQuote.Error()},
+
 		{`"`, sxpf.ErrMissingQuote.Error()},
 		{`"a`, sxpf.ErrMissingQuote.Error()},
 		{`"\`, sxpf.ErrMissingQuote.Error()},

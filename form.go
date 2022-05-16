@@ -40,7 +40,7 @@ func NewBuiltin(name string, special bool, minArity, maxArity int, f BuiltinFn) 
 
 func (b *Builtin) Equal(other Value) bool {
 	if b == nil || other == nil {
-		return Value(b) == other
+		return b == other
 	}
 	if o, ok := other.(*Builtin); ok {
 		return b.name == o.name

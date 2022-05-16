@@ -52,7 +52,7 @@ func (sm *SymbolMap) LookupForm(sym *Symbol) (Form, error) {
 // AsArray returns an array representation of the symbol map.
 func (sm *SymbolMap) AsArray() *Array {
 	if sm == nil {
-		return Nil()
+		return Empty()
 	}
 	result := NewArray(NewString("symbol"))
 	parent := NewArray(NewString("parent"))

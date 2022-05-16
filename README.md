@@ -4,8 +4,10 @@ This is a small framework to work with simple
 [s-expressions](https://en.wikipedia.org/wiki/S-expression). In contrast to
 some other implementations, there are two types of atoms: symbols and string.
 Symbols are case-insensitive, a string may contains any sequence of unicode
-characters, using UTF-8 encoding. An expression of the form `()`, `(A)`, `(A
-B)`, ..., is an array, where A and B are s-expressions. There is no pair type.
+characters, using UTF-8 encoding. An expression of the form `()`, `(A)`,
+`(A B)`, ..., is a pair list, where A and B are s-expressions. If it has the
+form `(A . B)` it is a pair. An expression of the form `[]`, `[A]`, `[A B]`,
+..., is an array, where A and B are s-expressions.
 
 The framework contains types, functions, and methods to create s-expressions,
 to encode them as a string, to write them somewhere, and to evaluate them.
@@ -28,7 +30,10 @@ arguments are not evaluated before calling the form.
         * any other character, excapt category C = the character itself, e.g.
           `\\` = backslash, `\"` = quote.
 * Symbol = a sequence of characters, except category C and Z ("separator"),
-  and except `"`, `[`, `]`, `;`.
+  and except `"`, `(`, `)`, `[`, `]`, `;`, `.`.
+* Pair = `(` Z\* (s-expression (Z\* s-sexpression)\* (Z\* `.` Z\* s-expression)?)? Z\* `)`
+* Array = `[` Z\* (s-expression (Z\* s-expression)\*)? Z\* `]`
+* Z = any unicode of category Z
 
 ## Note
 

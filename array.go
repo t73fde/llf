@@ -18,19 +18,19 @@ type Array struct {
 	frozen bool
 }
 
-// Nil is the defined value for an empty array.
-func Nil() *Array { return &myNIL }
+// Empty is the defined value for an empty array.
+func Empty() *Array { return &myNIL }
 
 var myNIL = Array{val: []Value{}, frozen: true}
 
 // NewArray creates a new array with the given values.
 func NewArray(lstVal ...Value) *Array {
 	if len(lstVal) == 0 {
-		return Nil()
+		return Empty()
 	}
 	for _, v := range lstVal {
 		if v == nil {
-			return Nil()
+			return Empty()
 		}
 	}
 	return &Array{lstVal, false}
