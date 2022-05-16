@@ -90,20 +90,20 @@ func (lst *Array) Equal(other Value) bool {
 }
 
 var (
-	space  = []byte{' '}
-	lParen = []byte{'('}
-	rParen = []byte{')'}
+	space    = []byte{' '}
+	lBracket = []byte{'['}
+	rBracket = []byte{']'}
 )
 
 func (lst *Array) String() string {
 	var buf bytes.Buffer
-	buf.Write(lParen)
+	buf.Write(lBracket)
 	for i, val := range lst.val {
 		if i > 0 {
 			buf.Write(space)
 		}
 		buf.WriteString(val.String())
 	}
-	buf.Write(rParen)
+	buf.Write(rBracket)
 	return buf.String()
 }

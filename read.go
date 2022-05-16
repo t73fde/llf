@@ -18,10 +18,16 @@ import (
 	"unicode"
 )
 
+// ErrMissingOpenBracket is raised if there is one additional closing bracket.
+var ErrMissingOpenBracket = errors.New("missing opening bracket")
+
+// ErrMissingCloseBracket raised if there is one additonal opening bracket.
+var ErrMissingCloseBracket = errors.New("missing closing bracket")
+
 // ErrMissingOpenParenthesis is raised if there is one additional closing parenthesis.
 var ErrMissingOpenParenthesis = errors.New("missing opening parenthesis")
 
-// ErrMissingCloseParenthesisis raised if there is one additonal openiing parenthesis.
+// ErrMissingCloseParenthesis raised if there is one additonal opening parenthesis.
 var ErrMissingCloseParenthesis = errors.New("missing closing parenthesis")
 
 // ErrMissingQuote is raised if there is no closing quote character.
@@ -89,12 +95,12 @@ func skipSpace(r Reader) (ch rune, err error) {
 
 func parseValue(smk SymbolMaker, r Reader, ch rune) (Value, error) {
 	switch ch {
-	case '(':
+	case '[':
 		return parseArray(smk, r)
 	case '"':
 		return parseString(r)
-	case ')':
-		return nil, ErrMissingOpenParenthesis
+	case ']':
+		return nil, ErrMissingOpenBracket
 	default: // Must be symbol
 		return parseSymbol(smk, r, ch)
 	}
@@ -115,7 +121,7 @@ func parseSymbol(smk SymbolMaker, r Reader, ch rune) (res Value, err error) {
 			return nil, err
 		}
 		switch ch {
-		case '(', ')', '"', ';':
+		case '[', ']', '"', ';':
 			err = r.UnreadRune()
 			return smk.MakeSymbol(buf.String()), err
 		}
@@ -164,9 +170,15 @@ func parseString(r Reader) (Value, error) {
 			case 'U':
 				err = parseRune(r, &buf, ch, 6)
 			default:
+				if unicode.In(ch, unicode.C) {
+					return nil, ErrMissingQuote
+				}
 				_, err = buf.WriteRune(ch)
 			}
 		default:
+			if unicode.In(ch, unicode.C) {
+				return nil, ErrMissingQuote
+			}
 			_, err = buf.WriteRune(ch)
 		}
 		if err != nil {
@@ -227,11 +239,11 @@ func parseArray(smk SymbolMaker, r Reader) (Value, error) {
 		ch, err := skipSpace(r)
 		if err != nil {
 			if err == io.EOF {
-				return nil, ErrMissingCloseParenthesis
+				return nil, ErrMissingCloseBracket
 			}
 			return nil, err
 		}
-		if ch == ')' {
+		if ch == ']' {
 			return NewArray(elems...), nil
 		}
 		val, err := parseValue(smk, r, ch)

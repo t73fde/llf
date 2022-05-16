@@ -13,6 +13,23 @@ Evaluation creates a third atom type, which currently cannot be encoded fully
 in a s-expression: forms (aka functions). Forms can be special, their
 arguments are not evaluated before calling the form.
 
+## Syntax
+* `;` starts a comment that lasts until end of line
+* String = `"CHAR*"` is a sequence of characters, delimited by quotes
+    * CHAR = any unicode character except from category C ("control") or an
+       escaped character (ECHAR).
+    * ECHAR a character sequence that starts with a backspace `\``
+        * `\t` = tabulator (code 9)
+        * `\n` = new line (code 10)
+        * `\r` = carriage return (code 13)
+        * `\xMN` = character with code MN (hex digits)
+        * `\uMNOP` = character with code MNOP (hex digits)
+        * `\UMNOPQR` = character with code MNOPQR (hex digits)
+        * any other character, excapt category C = the character itself, e.g.
+          `\\` = backslash, `\"` = quote.
+* Symbol = a sequence of characters, except category C and Z ("separator"),
+  and except `"`, `[`, `]`, `;`.
+
 ## Note
 
 * Cyclic structures are currently not supported. Creating them will likely

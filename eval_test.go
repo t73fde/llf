@@ -24,8 +24,8 @@ func TestEvaluate(t *testing.T) {
 	}{
 		{"a", "A"},
 		{`"a"`, `"a"`},
-		{"(CAT a b)", `"AB"`},
-		{"(QUOTE ((A b) c))", "((A B) C)"},
+		{"[CAT a b]", `"AB"`},
+		{"[QUOTE [[A b] c]]", "[[A B] C]"},
 	}
 	env := newTestEnv()
 	for i, tc := range testcases {
