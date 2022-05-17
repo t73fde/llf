@@ -1,19 +1,18 @@
 # sxpf - S-Expression Framework
 
-This is a small framework to work with simple
-[s-expressions](https://en.wikipedia.org/wiki/S-expression). In contrast to
-some other implementations, there are two types of atoms: symbols and string.
-Symbols are case-insensitive, a string may contains any sequence of unicode
-characters, using UTF-8 encoding. An expression of the form `()`, `(A)`,
-`(A B)`, ..., is a pair list, where A and B are s-expressions. If it has the
-form `(A . B)` it is a pair. An expression of the form `[]`, `[A]`, `[A B]`,
-..., is an array, where A and B are s-expressions.
+This is a framework to work with [s-expressions](https://en.wikipedia.org/wiki/S-expression).
+In contrast to some other implementations, there are two types of atoms:
+symbols and strings. Symbols are case-insensitive. A string may contain any
+sequence of unicode characters, using UTF-8 encoding. An expression of the
+form `()`, `(A)`, `(A B)`, ..., is a pair list, where A and B are
+s-expressions. If it has the form `(A . B)` it is a pair. An expression of the
+form `[]`, `[A]`, `[A B]`, ..., is an array, where A and B are s-expressions.
 
 The framework contains types, functions, and methods to create s-expressions,
-to encode them as a string, to write them somewhere, and to evaluate them.
-Evaluation creates a third atom type, which currently cannot be encoded fully
-in a s-expression: forms (aka functions). Forms can be special, their
-arguments are not evaluated before calling the form.
+to encode them as a string, and to evaluate them. Evaluation creates a third
+atom type, which currently cannot be encoded fully in a s-expression: forms
+(aka functions). Forms can be *special*. In this case their arguments are not
+evaluated before calling the form.
 
 ## Syntax
 * `;` starts a comment that lasts until end of line
@@ -38,7 +37,9 @@ arguments are not evaluated before calling the form.
 ## Note
 
 * Cyclic structures are currently not supported. Creating them will likely
-  lead to a stack obverflow.
+  lead to a stack overflow when working with them.
+* Creating deeply nested (> 1000 nesting levels) might create a stack overflow
+  too.
 
 ## Usage
 
