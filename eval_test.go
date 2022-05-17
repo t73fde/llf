@@ -24,6 +24,8 @@ func TestEvaluate(t *testing.T) {
 	}{
 		{"a", "A"},
 		{`"a"`, `"a"`},
+		{"(CAT a b)", `"AB"`},
+		{"(QUOTE [(A b) c])", "[(A B) C]"},
 		{"[CAT a b]", `"AB"`},
 		{"[QUOTE [[A b] c]]", "[[A B] C]"},
 	}
@@ -86,8 +88,12 @@ func (te *testEnv) MakeSymbol(s string) *sxpf.Symbol                 { return te
 func (te *testEnv) LookupForm(sym *sxpf.Symbol) (sxpf.Form, error)   { return te.symMap.LookupForm(sym) }
 func (*testEnv) EvaluateSymbol(sym *sxpf.Symbol) (sxpf.Value, error) { return sym, nil }
 func (*testEnv) EvaluateString(str *sxpf.String) (sxpf.Value, error) { return str, nil }
+func (e *testEnv) EvaluateList(p *sxpf.Pair) (sxpf.Value, error)     { return e.evalAsCall(p.GetSlice()) }
 func (e *testEnv) EvaluateArray(lst *sxpf.Array) (sxpf.Value, error) {
-	vals := lst.GetValue()
+	return e.evalAsCall(lst.GetValue())
+}
+
+func (e *testEnv) evalAsCall(vals []sxpf.Value) (sxpf.Value, error) {
 	res, err, done := sxpf.EvaluateCall(e, vals)
 	if done {
 		return res, err

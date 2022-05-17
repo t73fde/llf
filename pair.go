@@ -39,6 +39,28 @@ func (p *Pair) GetSecond() Value {
 	return nil
 }
 
+// GetSlice returns the pair list elements as a slice of Values.
+func (p *Pair) GetSlice() []Value {
+	if p == nil {
+		return nil
+	}
+	var result []Value
+	cp := p
+	for {
+		result = append(result, cp.first)
+		second := cp.second
+		np, ok := second.(*Pair)
+		if !ok {
+			result = append(result, second)
+			return result
+		}
+		if np == nil {
+			return result
+		}
+		cp = np
+	}
+}
+
 // Nil() returns the empty pair.
 func Nil() *Pair { return nilPair }
 

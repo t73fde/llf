@@ -40,6 +40,11 @@ type Environment interface {
 	// found in some internal lookup tables.
 	EvaluateSymbol(*Symbol) (Value, error)
 
+	// Evaluate the given pair list. In many cases this means to evaluate the
+	// first element to a form and then call the form with the remaning
+	// elements (possibly evaluated) as parameters.
+	EvaluateList(*Pair) (Value, error)
+
 	// Evaluate the given array. In many cases this means to evaluate the first
 	// element to a form and then call the form with the remaning elements
 	// (possibly evaluated) as parameters.
@@ -53,6 +58,8 @@ func Evaluate(env Environment, value Value) (Value, error) {
 		return env.EvaluateSymbol(val)
 	case *String:
 		return env.EvaluateString(val)
+	case *Pair:
+		return env.EvaluateList(val)
 	case *Array:
 		return env.EvaluateArray(val)
 	default:
