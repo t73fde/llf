@@ -102,3 +102,26 @@ func TestStringString(t *testing.T) {
 		}
 	}
 }
+
+func TestNewList(t *testing.T) {
+	t.Parallel()
+	st := sxpf.NewSymbolTable()
+	symA, symB, symC, symD := st.MakeSymbol("a"), st.MakeSymbol("b"), st.MakeSymbol("c"), st.MakeSymbol("d")
+	testcases := []struct {
+		values []sxpf.Value
+		exp    string
+	}{
+		{[]sxpf.Value{}, "()"},
+		{[]sxpf.Value{symA}, "(A)"},
+		{[]sxpf.Value{symA, symB}, "(A B)"},
+		{[]sxpf.Value{symA, symB, symC}, "(A B C)"},
+		{[]sxpf.Value{symA, symB, symC, symD}, "[A B C D]"},
+	}
+	for i, tc := range testcases {
+		lst := sxpf.NewSequence(tc.values...)
+		got := lst.String()
+		if got != tc.exp {
+			t.Errorf("%d: expected %q, but got %q", i, tc.exp, got)
+		}
+	}
+}

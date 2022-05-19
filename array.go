@@ -72,6 +72,8 @@ func (lst *Array) GetValue() []Value {
 	return lst.val
 }
 
+func (lst *Array) GetSlice() []Value { return lst.GetValue() }
+
 // Equal retruns true if the other value is equal to this one.
 func (lst *Array) Equal(other Value) bool {
 	if lst == nil || other == nil {

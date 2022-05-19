@@ -23,6 +23,19 @@ func NewPair(first, second Value) *Pair {
 	return &Pair{first, second}
 }
 
+// NewPairFromSlice creates a new pair list from the given Value slice.
+func NewPairFromSlice(values []Value) *Pair {
+	if len(values) == 0 {
+		return Nil()
+	}
+	var p *Pair
+	for i := len(values); i > 0; {
+		i--
+		p = NewPair(values[i], p)
+	}
+	return p
+}
+
 // GetFirst returns the first value of a pair
 func (p *Pair) GetFirst() Value {
 	if p != nil {

@@ -19,6 +19,29 @@ type Value interface {
 	String() string
 }
 
+// Sequence is a generic value that is a sequence of values.
+type Sequence interface {
+	Value
+	GetSlice() []Value
+}
+
+// NewSequence stores the slice of Values in a pair list or in an array, depending
+// on its length.
+func NewSequence(values ...Value) Sequence {
+	// A pair list has an overhead of four words per list element (both first
+	// and second value is a reference to an interface, two words each).
+	// An array has a constant overhead of 4 words (the Array struct) +
+	// 3 words (for the slice) and a linear overhead of two word per
+	// list element (for the interface reference to the value).
+	// Let x be the number of list elements. Then we need a x where
+	// 4*x > 2*x + 7 <=> x+x+x+x > x+x+7 <=> x+x > 7 <=> x > 3.
+
+	if len(values) > 3 {
+		return NewArray(values...)
+	}
+	return NewPairFromSlice(values)
+}
+
 // GetSymbol returns the idx value of args as a Symbol.
 func GetSymbol(args []Value, idx int) (*Symbol, error) {
 	if idx < 0 || len(args) <= idx {
