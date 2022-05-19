@@ -66,3 +66,10 @@ func (b *Builtin) Call(env Environment, args []Value) (Value, error) {
 	}
 	return b.fn(env, args)
 }
+
+func (b *Builtin) GetValue() BuiltinFn {
+	if b == nil {
+		return nil
+	}
+	return b.fn
+}
