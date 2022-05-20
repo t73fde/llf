@@ -90,7 +90,7 @@ func (*testEnv) EvaluateSymbol(sym *sxpf.Symbol) (sxpf.Value, error) { return sy
 func (*testEnv) EvaluateString(str *sxpf.String) (sxpf.Value, error) { return str, nil }
 func (e *testEnv) EvaluateList(p *sxpf.Pair) (sxpf.Value, error)     { return e.evalAsCall(p.GetSlice()) }
 func (e *testEnv) EvaluateArray(lst *sxpf.Array) (sxpf.Value, error) {
-	return e.evalAsCall(lst.GetValue())
+	return e.evalAsCall(lst.GetSlice())
 }
 
 func (e *testEnv) evalAsCall(vals []sxpf.Value) (sxpf.Value, error) {

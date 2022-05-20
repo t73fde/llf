@@ -67,15 +67,15 @@ func GetString(args []Value, idx int) (string, error) {
 	return "", fmt.Errorf("%v / %d is not a string", args[idx], idx)
 }
 
-// GetArray returns the idx value of args as an array.
-func GetArray(args []Value, idx int) (*Array, error) {
+// GetSequence returns the idx value of args as a sequence.
+func GetSequence(args []Value, idx int) (Sequence, error) {
 	if idx < 0 || len(args) <= idx {
 		return nil, makeErrIndexOutOfBounds(args, idx)
 	}
-	if val, ok := args[idx].(*Array); ok {
+	if val, ok := args[idx].(Sequence); ok {
 		return val, nil
 	}
-	return nil, fmt.Errorf("%v / %d is not an array", args[idx], idx)
+	return nil, fmt.Errorf("%v / %d is not a sequence", args[idx], idx)
 }
 
 func makeErrIndexOutOfBounds(args []Value, idx int) error {

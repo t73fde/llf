@@ -64,17 +64,13 @@ func (lst *Array) Extend(o *Array) {
 	}
 }
 
-// GetValue returns the array value as a slice of Values.
-func (lst *Array) GetValue() []Value {
+func (lst *Array) GetSlice() []Value {
 	if lst == nil {
 		return nil
 	}
 	return lst.val
 }
 
-func (lst *Array) GetSlice() []Value { return lst.GetValue() }
-
-// Equal retruns true if the other value is equal to this one.
 func (lst *Array) Equal(other Value) bool {
 	if lst == nil || other == nil {
 		return lst == other
