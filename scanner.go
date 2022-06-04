@@ -122,7 +122,7 @@ func (s *Scanner) nextSymbol(ch rune) Token {
 		switch ch {
 		case chEOF:
 			return Token{TokSymbol, buf.String()}
-		case '(', '.', ')', '[', ']', '"':
+		case '(', '.', ')', '[', ']', '"', ';':
 			err := s.rd.UnreadRune()
 			if err == nil {
 				return Token{TokSymbol, buf.String()}
@@ -261,7 +261,6 @@ func (s *Scanner) parseRune(buf *bytes.Buffer, curCh rune, numDigits int) {
 			result = (result << 4) + 15
 			continue
 		default:
-			buf.WriteByte('\\')
 			buf.WriteRune(curCh)
 			for j := 0; j < i; j++ {
 				buf.WriteRune(arr[j])
