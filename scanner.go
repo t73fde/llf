@@ -75,9 +75,19 @@ func (s *Scanner) read() rune {
 
 func (s *Scanner) Next() Token {
 	ch := s.read()
-	for unicode.IsSpace(ch) {
-		ch = s.read()
+	for {
+		for unicode.IsSpace(ch) {
+			ch = s.read()
+		}
+		if ch != ';' {
+			break
+		}
+		for ch != '\n' && ch != chEOF && ch != chErr {
+			ch = s.read()
+		}
+
 	}
+
 	switch ch {
 	case chEOF:
 		return Token{TokEOF, ""}
@@ -110,7 +120,9 @@ func (s *Scanner) nextSymbol(ch rune) Token {
 		buf.WriteRune(ch)
 		ch = s.read()
 		switch ch {
-		case chEOF, '(', '.', ')', '[', ']', '"':
+		case chEOF:
+			return Token{TokSymbol, buf.String()}
+		case '(', '.', ')', '[', ']', '"':
 			err := s.rd.UnreadRune()
 			if err == nil {
 				return Token{TokSymbol, buf.String()}
@@ -249,18 +261,14 @@ func (s *Scanner) parseRune(buf *bytes.Buffer, curCh rune, numDigits int) {
 			result = (result << 4) + 15
 			continue
 		default:
-			xflushRunes(buf, &arr, i, curCh)
+			buf.WriteByte('\\')
+			buf.WriteRune(curCh)
+			for j := 0; j < i; j++ {
+				buf.WriteRune(arr[j])
+			}
 			s.err = s.rd.UnreadRune()
 			return
 		}
 	}
 	buf.WriteRune(result)
-}
-
-func xflushRunes(buf *bytes.Buffer, arr *[8]rune, i int, ch rune) {
-	buf.WriteByte('\\')
-	buf.WriteRune(ch)
-	for j := 0; j < i; j++ {
-		buf.WriteRune(arr[j])
-	}
 }

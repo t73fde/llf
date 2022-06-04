@@ -34,6 +34,8 @@ func TestScanner(t *testing.T) {
 		exp string
 	}{
 		{"", ""},
+		{"a", "a"},
+		{"a ; comment", "a"},
 		{"(", "("},
 		{"(.)[]", "(.)[]"},
 		{"a.", "a."},
