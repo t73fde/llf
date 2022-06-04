@@ -173,16 +173,9 @@ func (s *Scanner) nextString() Token {
 	}
 }
 
-var xhexMap = map[rune]int{
-	'0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
-	'a': 10, 'b': 11, 'c': 12, 'd': 13, 'e': 14, 'f': 15,
-	'A': 10, 'B': 11, 'C': 12, 'D': 13, 'E': 14, 'F': 15,
-}
-
 func (s *Scanner) parseRune(buf *bytes.Buffer, curCh rune, numDigits int) {
 	var arr [8]rune
 	result := rune(0)
-loop:
 	for i := 0; i < numDigits; i++ {
 		ch := s.read()
 		switch ch {
@@ -191,18 +184,75 @@ loop:
 			return
 		case chErr:
 			return
-		case '"':
+		case '0':
+			arr[i] = '0'
+			result <<= 4
+			continue
+		case '1':
+			arr[i] = '1'
+			result = (result << 4) + 1
+			continue
+		case '2':
+			arr[i] = '2'
+			result = (result << 4) + 2
+			continue
+		case '3':
+			arr[i] = '3'
+			result = (result << 4) + 3
+			continue
+		case '4':
+			arr[i] = '4'
+			result = (result << 4) + 4
+			continue
+		case '5':
+			arr[i] = '5'
+			result = (result << 4) + 5
+			continue
+		case '6':
+			arr[i] = '6'
+			result = (result << 4) + 6
+			continue
+		case '7':
+			arr[i] = '7'
+			result = (result << 4) + 7
+			continue
+		case '8':
+			arr[i] = '8'
+			result = (result << 4) + 8
+			continue
+		case '9':
+			arr[i] = '9'
+			result = (result << 4) + 9
+			continue
+		case 'A', 'a':
+			arr[i] = ch
+			result = (result << 4) + 10
+			continue
+		case 'B', 'b':
+			arr[i] = ch
+			result = (result << 4) + 11
+			continue
+		case 'C', 'c':
+			arr[i] = ch
+			result = (result << 4) + 12
+			continue
+		case 'D', 'd':
+			arr[i] = ch
+			result = (result << 4) + 13
+			continue
+		case 'E', 'e':
+			arr[i] = ch
+			result = (result << 4) + 14
+			continue
+		case 'F', 'f':
+			arr[i] = ch
+			result = (result << 4) + 15
+			continue
+		default:
 			xflushRunes(buf, &arr, i, curCh)
 			s.err = s.rd.UnreadRune()
-			break loop
+			return
 		}
-		arr[i] = ch
-		if hexVal, found := xhexMap[ch]; found {
-			result = (result << 4) + rune(hexVal)
-			continue
-		}
-		xflushRunes(buf, &arr, i, curCh)
-		return
 	}
 	buf.WriteRune(result)
 }
