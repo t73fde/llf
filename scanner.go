@@ -40,17 +40,17 @@ type Token struct {
 
 // Scanner are returning Token from a Reader.
 type Scanner struct {
-	rd  Reader
+	rd  RuneReader
 	pos uint64 // current bye position in Reader
 	err error
 }
 
 // NewScanner creates a new scanner.
-func NewScanner(rd Reader) *Scanner {
+func NewScanner(rd RuneReader) *Scanner {
 	return &Scanner{rd, 0, nil}
 }
 
-func (s *Scanner) Error() error { return s.err }
+func (s *Scanner) Err() error { return s.err }
 
 const (
 	chErr rune = -1
