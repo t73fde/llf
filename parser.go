@@ -60,19 +60,30 @@ type RuneReader interface {
 	UnreadRune() error
 }
 
-func ParseValue(smk SymbolMaker, r RuneReader) (Value, error) {
-	s := NewScanner(r)
-	xpr := xprParser{smk, s, nil}
-	return xpr.parseValue(xpr.next())
+func ParseValue(smk SymbolMaker, rr RuneReader) (Value, error) {
+	pa := NewParser(smk, rr)
+	return pa.Parse()
 }
 
-type xprParser struct {
+type Parser struct {
 	smk  SymbolMaker
 	sc   *Scanner
 	tbuf []*Token
 }
 
-func (pa *xprParser) next() Token {
+func NewParser(smk SymbolMaker, rr RuneReader) *Parser {
+	return &Parser{
+		smk:  smk,
+		sc:   NewScanner(rr),
+		tbuf: nil,
+	}
+}
+
+func (pa *Parser) Parse() (Value, error) {
+	return pa.parseValue(pa.next())
+}
+
+func (pa *Parser) next() Token {
 	if tb := pa.tbuf; len(tb) > 0 {
 		result := tb[0]
 		tb[0] = nil
@@ -95,7 +106,7 @@ func (pa *xprParser) next() Token {
 	return tok
 }
 
-func (pa *xprParser) fillBuffer(token *Token, etyp TokenType, errEOF error) Token {
+func (pa *Parser) fillBuffer(token *Token, etyp TokenType, errEOF error) Token {
 	nesting := 0
 	for {
 		tok := pa.sc.Next()
@@ -127,9 +138,9 @@ func (pa *xprParser) fillBuffer(token *Token, etyp TokenType, errEOF error) Toke
 		}
 	}
 }
-func (pa *xprParser) err() error { return pa.sc.Err() }
+func (pa *Parser) err() error { return pa.sc.Err() }
 
-func (pa *xprParser) parseValue(tok Token) (Value, error) {
+func (pa *Parser) parseValue(tok Token) (Value, error) {
 	switch tok.Typ {
 	case TokEOF:
 		return nil, io.EOF
@@ -152,7 +163,7 @@ func (pa *xprParser) parseValue(tok Token) (Value, error) {
 	}
 }
 
-func (pa *xprParser) parseArray() (Value, error) {
+func (pa *Parser) parseArray() (Value, error) {
 	elems := []Value{}
 	for {
 		tok := pa.next()
@@ -172,7 +183,7 @@ func (pa *xprParser) parseArray() (Value, error) {
 	}
 }
 
-func (pa *xprParser) parseList() (Value, error) {
+func (pa *Parser) parseList() (Value, error) {
 	elems := []Value{}
 loop:
 	for {
