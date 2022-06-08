@@ -31,7 +31,7 @@ func TestEvaluate(t *testing.T) {
 	}
 	env := newTestEnv()
 	for i, tc := range testcases {
-		expr, err := sxpf.ReadString(env, tc.src)
+		expr, err := sxpf.ParseString(env, tc.src)
 		if err != nil {
 			t.Error(err)
 			continue

@@ -66,7 +66,7 @@ func TestReadString(t *testing.T) {
 	}
 	for i, tc := range testcases {
 		smk := sxpf.NewTrivialSymbolMaker()
-		val, err := sxpf.ReadString(smk, tc.src)
+		val, err := sxpf.ParseString(smk, tc.src)
 		if err != nil {
 			t.Errorf("%d: ReadString(%q) resulted in error: %v", i, tc.src, err)
 			continue
@@ -99,7 +99,7 @@ func TestReadMultiple(t *testing.T) {
 		smk := sxpf.NewTrivialSymbolMaker()
 		reader := bytes.NewBufferString(tc.src)
 		for cnt := 0; ; cnt++ {
-			val, err := sxpf.ReadValue(smk, reader)
+			val, err := sxpf.ParseValue(smk, reader)
 			if err == io.EOF {
 				break
 			}
@@ -157,7 +157,7 @@ func TestReadBytesWithError(t *testing.T) {
 	}
 	for i, tc := range testcases {
 		smk := sxpf.NewTrivialSymbolMaker()
-		val, err := sxpf.ReadBytes(smk, []byte(tc.src))
+		val, err := sxpf.ParseBytes(smk, []byte(tc.src))
 		if err == nil {
 			t.Errorf("%d: ReadString(%q) should result in error, but got value of type %T: %v", i, tc.src, val, val)
 			continue
@@ -173,6 +173,6 @@ func FuzzReadBytes(f *testing.F) {
 	smk := sxpf.NewTrivialSymbolMaker()
 	f.Fuzz(func(t *testing.T, src []byte) {
 		t.Parallel()
-		sxpf.ReadBytes(smk, src)
+		sxpf.ParseBytes(smk, src)
 	})
 }

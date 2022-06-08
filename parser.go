@@ -35,20 +35,20 @@ var ErrMissingQuote = errors.New("missing quote character")
 // ErrMissing EOF is raised if there is additional input after an expression.
 var ErrMissingEOF = errors.New("missing end of input")
 
-func ReadString(smk SymbolMaker, src string) (Value, error) {
+func ParseString(smk SymbolMaker, src string) (Value, error) {
 	return consumeReader(smk, strings.NewReader(src))
 }
 
-func ReadBytes(smk SymbolMaker, src []byte) (Value, error) {
+func ParseBytes(smk SymbolMaker, src []byte) (Value, error) {
 	return consumeReader(smk, bytes.NewBuffer(src))
 }
 
 func consumeReader(smk SymbolMaker, r RuneReader) (Value, error) {
-	val, err := ReadValue(smk, r)
+	val, err := ParseValue(smk, r)
 	if err != nil {
 		return val, err
 	}
-	_, err = ReadValue(smk, r)
+	_, err = ParseValue(smk, r)
 	if err == io.EOF {
 		return val, nil
 	}
@@ -60,85 +60,85 @@ type RuneReader interface {
 	UnreadRune() error
 }
 
-func ReadValue(smk SymbolMaker, r RuneReader) (Value, error) {
+func ParseValue(smk SymbolMaker, r RuneReader) (Value, error) {
 	s := NewScanner(r)
-	xpr := xprReader{smk, s, nil}
+	xpr := xprParser{smk, s, nil}
 	return xpr.parseValue(xpr.next())
 }
 
-type xprReader struct {
+type xprParser struct {
 	smk  SymbolMaker
 	sc   *Scanner
 	tbuf []*Token
 }
 
-func (xpr *xprReader) next() Token {
-	if tb := xpr.tbuf; len(tb) > 0 {
+func (pa *xprParser) next() Token {
+	if tb := pa.tbuf; len(tb) > 0 {
 		result := tb[0]
 		tb[0] = nil
 		if len(tb) > 1 {
-			xpr.tbuf = tb[1:]
+			pa.tbuf = tb[1:]
 		} else {
-			xpr.tbuf = nil
+			pa.tbuf = nil
 		}
 		return *result
 	}
 
-	tok := xpr.sc.Next()
+	tok := pa.sc.Next()
 	if ty := tok.Typ; ty == TokLeftBrack {
 		// Fill buffer until right bracket
-		return xpr.fillBuffer(&tok, TokRightBrack, ErrMissingCloseBracket)
+		return pa.fillBuffer(&tok, TokRightBrack, ErrMissingCloseBracket)
 	} else if ty == TokLeftParen {
 		// Fill buffer until right parenthesis
-		return xpr.fillBuffer(&tok, TokRightParen, ErrMissingCloseParenthesis)
+		return pa.fillBuffer(&tok, TokRightParen, ErrMissingCloseParenthesis)
 	}
 	return tok
 }
 
-func (xpr *xprReader) fillBuffer(token *Token, etyp TokenType, errEOF error) Token {
+func (pa *xprParser) fillBuffer(token *Token, etyp TokenType, errEOF error) Token {
 	nesting := 0
 	for {
-		tok := xpr.sc.Next()
+		tok := pa.sc.Next()
 		switch tok.Typ {
 		case TokEOF:
-			xpr.sc.err = errEOF
+			pa.sc.err = errEOF
 			return Token{Typ: TokErr}
 		case TokErr:
 			return tok
 		case TokLeftBrack, TokLeftParen:
-			xpr.tbuf = append(xpr.tbuf, &tok)
+			pa.tbuf = append(pa.tbuf, &tok)
 			nesting++
 		case TokRightBrack, TokRightParen:
-			xpr.tbuf = append(xpr.tbuf, &tok)
+			pa.tbuf = append(pa.tbuf, &tok)
 			if nesting == 0 {
 				if tok.Typ == etyp {
 					return *token
 				}
 				if tok.Typ == TokRightBrack {
-					xpr.sc.err = ErrMissingCloseParenthesis
+					pa.sc.err = ErrMissingCloseParenthesis
 				} else {
-					xpr.sc.err = ErrMissingCloseBracket
+					pa.sc.err = ErrMissingCloseBracket
 				}
 				return Token{Typ: TokErr}
 			}
 			nesting--
 		default:
-			xpr.tbuf = append(xpr.tbuf, &tok)
+			pa.tbuf = append(pa.tbuf, &tok)
 		}
 	}
 }
-func (xpr *xprReader) err() error { return xpr.sc.Err() }
+func (pa *xprParser) err() error { return pa.sc.Err() }
 
-func (xpr *xprReader) parseValue(tok Token) (Value, error) {
+func (pa *xprParser) parseValue(tok Token) (Value, error) {
 	switch tok.Typ {
 	case TokEOF:
 		return nil, io.EOF
 	case TokErr:
-		return nil, xpr.err()
+		return nil, pa.err()
 	case TokLeftParen:
-		return xpr.parseList()
+		return pa.parseList()
 	case TokLeftBrack:
-		return xpr.parseArray()
+		return pa.parseArray()
 	case TokString:
 		return NewString(tok.Val), nil
 	case TokRightParen, TokPeriod:
@@ -146,25 +146,25 @@ func (xpr *xprReader) parseValue(tok Token) (Value, error) {
 	case TokRightBrack:
 		return nil, ErrMissingOpenBracket
 	case TokSymbol:
-		return xpr.smk.MakeSymbol(tok.Val), nil
+		return pa.smk.MakeSymbol(tok.Val), nil
 	default:
 		panic(tok)
 	}
 }
 
-func (xpr *xprReader) parseArray() (Value, error) {
+func (pa *xprParser) parseArray() (Value, error) {
 	elems := []Value{}
 	for {
-		tok := xpr.next()
+		tok := pa.next()
 		switch tok.Typ {
 		case TokEOF:
 			return nil, ErrMissingCloseBracket
 		case TokErr:
-			return nil, xpr.err()
+			return nil, pa.err()
 		case TokRightBrack:
 			return NewArray(elems...), nil
 		}
-		val, err := xpr.parseValue(tok)
+		val, err := pa.parseValue(tok)
 		if err != nil {
 			return nil, err
 		}
@@ -172,16 +172,16 @@ func (xpr *xprReader) parseArray() (Value, error) {
 	}
 }
 
-func (xpr *xprReader) parseList() (Value, error) {
+func (pa *xprParser) parseList() (Value, error) {
 	elems := []Value{}
 loop:
 	for {
-		tok := xpr.next()
+		tok := pa.next()
 		switch tok.Typ {
 		case TokEOF:
 			return nil, ErrMissingCloseParenthesis
 		case TokErr:
-			return nil, xpr.err()
+			return nil, pa.err()
 		case TokRightParen:
 			p := Nil()
 			for i := len(elems) - 1; i >= 0; i-- {
@@ -194,28 +194,28 @@ loop:
 			}
 			break loop
 		}
-		val, err := xpr.parseValue(tok)
+		val, err := pa.parseValue(tok)
 		if err != nil {
 			return nil, err
 		}
 		elems = append(elems, val)
 	}
 
-	tok := xpr.next()
+	tok := pa.next()
 	switch tok.Typ {
 	case TokEOF:
 		return nil, ErrMissingCloseParenthesis
 	case TokErr:
-		return nil, xpr.err()
+		return nil, pa.err()
 	}
-	val, err := xpr.parseValue(tok)
+	val, err := pa.parseValue(tok)
 	if err != nil {
 		return nil, err
 	}
-	tok = xpr.next()
+	tok = pa.next()
 	switch tok.Typ {
 	case TokErr:
-		return nil, xpr.err()
+		return nil, pa.err()
 	case TokRightParen:
 	default:
 		return nil, ErrMissingCloseParenthesis
