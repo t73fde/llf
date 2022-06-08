@@ -13,12 +13,15 @@ package sxpf_test
 import (
 	"bytes"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/t73fde/sxpf"
 )
 
 func TestReadString(t *testing.T) {
+	pml, pmr := strings.Repeat("(", 5000), strings.Repeat(")", 5000)
+	bml, bmr := strings.Repeat("[", 5000), strings.Repeat("]", 5000)
 	testcases := []struct {
 		src string
 		exp string
@@ -63,6 +66,11 @@ func TestReadString(t *testing.T) {
 		{"; bla\n\r\n\na", "A"},
 		{"; bla\n; bla\na", "A"},
 		{"; bla\n\n; bla\na", "A"},
+
+		{pml + pml + pmr + pmr, pml + pml + pmr + pmr},
+		{bml + bml + bmr + bmr, bml + bml + bmr + bmr},
+		{pml + bml + bmr + pmr, pml + bml + bmr + pmr},
+		{bml + pml + pmr + bmr, bml + pml + pmr + bmr},
 	}
 	for i, tc := range testcases {
 		smk := sxpf.NewTrivialSymbolMaker()

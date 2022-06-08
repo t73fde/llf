@@ -29,6 +29,9 @@ var ErrMissingOpenParenthesis = errors.New("missing opening parenthesis")
 // ErrMissingCloseParenthesis raised if there is one additonal opening parenthesis.
 var ErrMissingCloseParenthesis = errors.New("missing closing parenthesis")
 
+// ErrNestedTooDeeply is raised if brackets / parentheses were nested too deeply.
+var ErrNestedTooDeeply = errors.New("exceeded max depth")
+
 // ErrMissingQuote is raised if there is no closing quote character.
 var ErrMissingQuote = errors.New("missing quote character")
 
@@ -66,17 +69,25 @@ func ParseValue(smk SymbolMaker, rr RuneReader) (Value, error) {
 }
 
 type Parser struct {
-	smk  SymbolMaker
-	sc   *Scanner
-	tbuf []*Token
+	smk        SymbolMaker
+	sc         *Scanner
+	tbuf       []*Token
+	maxNesting uint
 }
 
 func NewParser(smk SymbolMaker, rr RuneReader) *Parser {
 	return &Parser{
-		smk:  smk,
-		sc:   NewScanner(rr),
-		tbuf: nil,
+		smk:        smk,
+		sc:         NewScanner(rr),
+		tbuf:       nil,
+		maxNesting: 10000,
 	}
+}
+
+func (pa *Parser) SetMaxNesting(n uint) uint {
+	prevN := pa.maxNesting
+	pa.maxNesting = n
+	return prevN
 }
 
 func (pa *Parser) Parse() (Value, error) {
@@ -107,7 +118,7 @@ func (pa *Parser) next() Token {
 }
 
 func (pa *Parser) fillBuffer(token *Token, etyp TokenType, errEOF error) Token {
-	nesting := 0
+	nesting := uint(0)
 	for {
 		tok := pa.sc.Next()
 		switch tok.Typ {
@@ -119,6 +130,10 @@ func (pa *Parser) fillBuffer(token *Token, etyp TokenType, errEOF error) Token {
 		case TokLeftBrack, TokLeftParen:
 			pa.tbuf = append(pa.tbuf, &tok)
 			nesting++
+			if nesting >= pa.maxNesting {
+				pa.sc.err = ErrNestedTooDeeply
+				return Token{Typ: TokErr}
+			}
 		case TokRightBrack, TokRightParen:
 			pa.tbuf = append(pa.tbuf, &tok)
 			if nesting == 0 {
