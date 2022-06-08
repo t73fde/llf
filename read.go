@@ -96,23 +96,30 @@ func (xpr *xprReader) next() Token {
 }
 
 func (xpr *xprReader) fillBuffer(token *Token, etyp TokenType, errEOF error) Token {
-	styp := token.Typ
 	nesting := 0
 	for {
 		tok := xpr.sc.Next()
 		switch tok.Typ {
 		case TokEOF:
 			xpr.sc.err = errEOF
-			return Token{Typ: TokErr, Val: ""}
+			return Token{Typ: TokErr}
 		case TokErr:
 			return tok
-		case styp:
+		case TokLeftBrack, TokLeftParen:
 			xpr.tbuf = append(xpr.tbuf, &tok)
 			nesting++
-		case etyp:
+		case TokRightBrack, TokRightParen:
 			xpr.tbuf = append(xpr.tbuf, &tok)
 			if nesting == 0 {
-				return *token
+				if tok.Typ == etyp {
+					return *token
+				}
+				if tok.Typ == TokRightBrack {
+					xpr.sc.err = ErrMissingCloseParenthesis
+				} else {
+					xpr.sc.err = ErrMissingCloseBracket
+				}
+				return Token{Typ: TokErr}
 			}
 			nesting--
 		default:
