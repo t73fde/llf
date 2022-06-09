@@ -89,7 +89,7 @@ func (te *testEnv) LookupForm(sym *sxpf.Symbol) (sxpf.Form, error)   { return te
 func (*testEnv) EvaluateSymbol(sym *sxpf.Symbol) (sxpf.Value, error) { return sym, nil }
 func (*testEnv) EvaluateString(str *sxpf.String) (sxpf.Value, error) { return str, nil }
 func (e *testEnv) EvaluateList(p *sxpf.Pair) (sxpf.Value, error)     { return e.evalAsCall(p.GetSlice()) }
-func (e *testEnv) EvaluateArray(lst *sxpf.Array) (sxpf.Value, error) {
+func (e *testEnv) EvaluateVector(lst *sxpf.Vector) (sxpf.Value, error) {
 	return e.evalAsCall(lst.GetSlice())
 }
 
@@ -102,5 +102,5 @@ func (e *testEnv) evalAsCall(vals []sxpf.Value) (sxpf.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	return sxpf.NewArray(result...), nil
+	return sxpf.NewVector(result...), nil
 }

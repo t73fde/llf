@@ -12,33 +12,33 @@ package sxpf
 
 import "bytes"
 
-// Array is a sequence of values, including sub-arrays.
-type Array struct {
+// Vector is a sequence of values, including sub-vectors.
+type Vector struct {
 	val    []Value
 	frozen bool
 }
 
-// Empty is the defined value for an empty array.
-func Empty() *Array { return &myNIL }
+// Empty is the defined value for an empty vector.
+func Empty() *Vector { return &myNIL }
 
-var myNIL = Array{val: []Value{}, frozen: true}
+var myNIL = Vector{val: []Value{}, frozen: true}
 
-// NewArray creates a new array with the given values.
-func NewArray(lstVal ...Value) *Array {
-	if len(lstVal) == 0 {
+// NewVector creates a new vector with the given values.
+func NewVector(vals ...Value) *Vector {
+	if len(vals) == 0 {
 		return Empty()
 	}
-	for _, v := range lstVal {
+	for _, v := range vals {
 		if v == nil {
 			return Empty()
 		}
 	}
-	return &Array{lstVal, false}
+	return &Vector{vals, false}
 }
 
-// Append some more value to an array.
-func (lst *Array) Append(lstVal ...Value) {
-	if lst.frozen {
+// Append some more value to a vector.
+func (v *Vector) Append(lstVal ...Value) {
+	if v.frozen {
 		return
 	}
 	for _, v := range lstVal {
@@ -46,12 +46,12 @@ func (lst *Array) Append(lstVal ...Value) {
 			return
 		}
 	}
-	lst.val = append(lst.val, lstVal...)
+	v.val = append(v.val, lstVal...)
 }
 
-// Extend the array by another
-func (lst *Array) Extend(o *Array) {
-	if lst.frozen {
+// Extend the vector by another
+func (v *Vector) Extend(o *Vector) {
+	if v.frozen {
 		return
 	}
 	if o != nil {
@@ -60,26 +60,26 @@ func (lst *Array) Extend(o *Array) {
 				return
 			}
 		}
-		lst.val = append(lst.val, o.val...)
+		v.val = append(v.val, o.val...)
 	}
 }
 
-func (lst *Array) GetSlice() []Value {
-	if lst == nil {
+func (v *Vector) GetSlice() []Value {
+	if v == nil {
 		return nil
 	}
-	return lst.val
+	return v.val
 }
 
-func (lst *Array) Equal(other Value) bool {
-	if lst == nil || other == nil {
-		return lst == other
+func (v *Vector) Equal(other Value) bool {
+	if v == nil || other == nil {
+		return v == other
 	}
-	o, ok := other.(*Array)
-	if !ok || len(lst.val) != len(o.val) {
+	o, ok := other.(*Vector)
+	if !ok || len(v.val) != len(o.val) {
 		return false
 	}
-	for i, val := range lst.val {
+	for i, val := range v.val {
 		if !val.Equal(o.val[i]) {
 			return false
 		}
@@ -93,10 +93,10 @@ var (
 	rBracket = []byte{']'}
 )
 
-func (lst *Array) String() string {
+func (v *Vector) String() string {
 	var buf bytes.Buffer
 	buf.Write(lBracket)
-	for i, val := range lst.val {
+	for i, val := range v.val {
 		if i > 0 {
 			buf.Write(space)
 		}

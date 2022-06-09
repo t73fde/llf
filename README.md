@@ -6,7 +6,7 @@ symbols and strings. Symbols are case-insensitive. A string may contain any
 sequence of unicode characters, using UTF-8 encoding. An expression of the
 form `()`, `(A)`, `(A B)`, ..., is a pair list, where A and B are
 s-expressions. If it has the form `(A . B)` it is a pair. An expression of the
-form `[]`, `[A]`, `[A B]`, ..., is an array, where A and B are s-expressions.
+form `[]`, `[A]`, `[A B]`, ..., is a vector, where A and B are s-expressions.
 
 The framework contains types, functions, and methods to create s-expressions,
 to encode them as a string, and to evaluate them. Evaluation creates a third
@@ -31,15 +31,13 @@ evaluated before calling the form.
 * Symbol = a sequence of characters, except category C and Z ("separator"),
   and except `"`, `(`, `)`, `[`, `]`, `;`, `.`.
 * Pair = `(` Z\* (s-expression (Z\* s-sexpression)\* (Z\* `.` Z\* s-expression)?)? Z\* `)`
-* Array = `[` Z\* (s-expression (Z\* s-expression)\*)? Z\* `]`
+* Vector = `[` Z\* (s-expression (Z\* s-expression)\*)? Z\* `]`
 * Z = any unicode of category Z
 
 ## Note
 
 * Cyclic structures are currently not supported. Creating them will likely
   lead to a stack overflow when working with them.
-* Creating deeply nested (> 1000 nesting levels) might create a stack overflow
-  too.
 
 ## Usage
 

@@ -45,10 +45,10 @@ type Environment interface {
 	// elements (possibly evaluated) as parameters.
 	EvaluateList(*Pair) (Value, error)
 
-	// Evaluate the given array. In many cases this means to evaluate the first
+	// Evaluate the given vector. In many cases this means to evaluate the first
 	// element to a form and then call the form with the remaning elements
 	// (possibly evaluated) as parameters.
-	EvaluateArray(*Array) (Value, error)
+	EvaluateVector(*Vector) (Value, error)
 }
 
 // Evaluate the given s-expression value in the given environment.
@@ -60,8 +60,8 @@ func Evaluate(env Environment, value Value) (Value, error) {
 		return env.EvaluateString(val)
 	case *Pair:
 		return env.EvaluateList(val)
-	case *Array:
-		return env.EvaluateArray(val)
+	case *Vector:
+		return env.EvaluateVector(val)
 	default:
 		// Other types evaluate to themself
 		return value, nil

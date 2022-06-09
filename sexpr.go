@@ -25,19 +25,19 @@ type Sequence interface {
 	GetSlice() []Value
 }
 
-// NewSequence stores the slice of Values in a pair list or in an array, depending
-// on its length.
+// NewSequence stores the slice of Values in a pair list or in a vector,
+// depending on its length.
 func NewSequence(values ...Value) Sequence {
 	// A pair list has an overhead of four words per list element (both first
 	// and second value is a reference to an interface, two words each).
-	// An array has a constant overhead of 4 words (the Array struct) +
-	// 3 words (for the slice) and a linear overhead of two word per
+	// A vector has a constant overhead of 4 words (the Vector struct) +
+	// 3 words (for the slice) and a linear overhead of two words per
 	// list element (for the interface reference to the value).
 	// Let x be the number of list elements. Then we need a x where
 	// 4*x > 2*x + 7 <=> x+x+x+x > x+x+7 <=> x+x > 7 <=> x > 3.
 
 	if len(values) > 3 {
-		return NewArray(values...)
+		return NewVector(values...)
 	}
 	return NewPairFromSlice(values)
 }

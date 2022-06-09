@@ -49,21 +49,21 @@ func (sm *SymbolMap) LookupForm(sym *Symbol) (Form, error) {
 	return nil, ErrNotFormBound(sym)
 }
 
-// AsArray returns an array representation of the symbol map.
-func (sm *SymbolMap) AsArray() *Array {
+// AsVector returns a vector representation of the symbol map.
+func (sm *SymbolMap) AsVector() *Vector {
 	if sm == nil {
 		return Empty()
 	}
-	result := NewArray(NewString("symbol"))
-	parent := NewArray(NewString("parent"))
+	result := NewVector(NewString("symbol"))
+	parent := NewVector(NewString("parent"))
 	if sm.parent == nil {
 		parent.Append(Nil())
 	} else {
-		parent.Append(sm.parent.AsArray())
+		parent.Append(sm.parent.AsVector())
 	}
 	result.Append(parent)
 	for sym, val := range sm.assoc {
-		result.Append(NewArray(sym, val))
+		result.Append(NewVector(sym, val))
 	}
 	return result
 }
@@ -93,5 +93,5 @@ func (sm *SymbolMap) Equal(other Value) bool {
 }
 
 func (sm *SymbolMap) String() string {
-	return sm.AsArray().String()
+	return sm.AsVector().String()
 }

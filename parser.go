@@ -164,7 +164,7 @@ func (pa *Parser) parseValue(tok Token) (Value, error) {
 	case TokLeftParen:
 		return pa.parseList()
 	case TokLeftBrack:
-		return pa.parseArray()
+		return pa.parseVector()
 	case TokString:
 		return NewString(tok.Val), nil
 	case TokRightParen, TokPeriod:
@@ -178,7 +178,7 @@ func (pa *Parser) parseValue(tok Token) (Value, error) {
 	}
 }
 
-func (pa *Parser) parseArray() (Value, error) {
+func (pa *Parser) parseVector() (Value, error) {
 	elems := []Value{}
 	for {
 		tok := pa.next()
@@ -188,7 +188,7 @@ func (pa *Parser) parseArray() (Value, error) {
 		case TokErr:
 			return nil, pa.err()
 		case TokRightBrack:
-			return NewArray(elems...), nil
+			return NewVector(elems...), nil
 		}
 		val, err := pa.parseValue(tok)
 		if err != nil {
