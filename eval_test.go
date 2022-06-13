@@ -88,17 +88,17 @@ func (te *testEnv) MakeSymbol(s string) *sxpf.Symbol                 { return te
 func (te *testEnv) LookupForm(sym *sxpf.Symbol) (sxpf.Form, error)   { return te.symMap.LookupForm(sym) }
 func (*testEnv) EvaluateSymbol(sym *sxpf.Symbol) (sxpf.Value, error) { return sym, nil }
 func (*testEnv) EvaluateString(str *sxpf.String) (sxpf.Value, error) { return str, nil }
-func (e *testEnv) EvaluateList(p *sxpf.Pair) (sxpf.Value, error)     { return e.evalAsCall(p.GetSlice()) }
-func (e *testEnv) EvaluateVector(lst *sxpf.Vector) (sxpf.Value, error) {
-	return e.evalAsCall(lst.GetSlice())
+func (te *testEnv) EvaluateList(p *sxpf.Pair) (sxpf.Value, error)    { return te.evalAsCall(p.GetSlice()) }
+func (te *testEnv) EvaluateVector(lst *sxpf.Vector) (sxpf.Value, error) {
+	return te.evalAsCall(lst.GetSlice())
 }
 
-func (e *testEnv) evalAsCall(vals []sxpf.Value) (sxpf.Value, error) {
-	res, err, done := sxpf.EvaluateCall(e, vals)
+func (te *testEnv) evalAsCall(vals []sxpf.Value) (sxpf.Value, error) {
+	res, err, done := sxpf.EvaluateCall(te, vals)
 	if done {
 		return res, err
 	}
-	result, err := sxpf.EvaluateSlice(e, vals)
+	result, err := sxpf.EvaluateSlice(te, vals)
 	if err != nil {
 		return nil, err
 	}
