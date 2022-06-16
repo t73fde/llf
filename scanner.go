@@ -28,7 +28,9 @@ const (
 	TokRightParen                  // )
 	TokLeftBrack                   // [
 	TokRightBrack                  // ]
-	TokSymbol                      // a symbol
+	TokLeftCurly                   // {
+	TokRightCurly                  // }
+	TokSymbol                      // symbol
 	TokString                      // "..."
 )
 
@@ -103,6 +105,10 @@ func (s *Scanner) Next() Token {
 		return Token{TokLeftBrack, "["}
 	case ']':
 		return Token{TokRightBrack, "]"}
+	case '{':
+		return Token{TokLeftCurly, "{"}
+	case '}':
+		return Token{TokRightCurly, "}"}
 	case '"':
 		return s.nextString()
 	}
@@ -122,7 +128,7 @@ func (s *Scanner) nextSymbol(ch rune) Token {
 		switch ch {
 		case chEOF:
 			return Token{TokSymbol, buf.String()}
-		case '(', '.', ')', '[', ']', '"', ';':
+		case '(', '.', ')', '[', ']', '{', '}', '"', ';':
 			err := s.rd.UnreadRune()
 			if err == nil {
 				return Token{TokSymbol, buf.String()}

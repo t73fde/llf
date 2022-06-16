@@ -61,6 +61,12 @@ func TestReadString(t *testing.T) {
 		{`["a" b "c"]`, `["a" B "c"]`},
 		{"[A [[b c] d] [e f]]", "[A [[B C] D] [E F]]"},
 
+		{"{}", "{}"},
+		{"{a}", "{A ()}"},
+		{`{"a" a}`, `{"a" A}`},
+		{"{{a}}", "{{A ()} ()}"},
+		{"{{a b} c}", "{{A B} C}"},
+
 		{"A; bla", "A"},
 		{"; bla\na", "A"},
 		{"; bla\n\r\n\na", "A"},

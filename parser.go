@@ -29,6 +29,12 @@ var ErrMissingOpenParenthesis = errors.New("missing opening parenthesis")
 // ErrMissingCloseParenthesis raised if there is one additonal opening parenthesis.
 var ErrMissingCloseParenthesis = errors.New("missing closing parenthesis")
 
+// ErrMissingOpenCurly is raised if there is one additional closing curly bracket.
+var ErrMissingOpenCurly = errors.New("missing opening opening curly brackets")
+
+// ErrMissingCloseCurly raised if there is one additonal opening curly bracket.
+var ErrMissingCloseCurly = errors.New("missing closing curly brackets")
+
 // ErrNestedTooDeeply is raised if brackets / parentheses were nested too deeply.
 var ErrNestedTooDeeply = errors.New("exceeded max depth")
 
@@ -107,17 +113,22 @@ func (pa *Parser) next() Token {
 	}
 
 	tok := pa.sc.Next()
-	if ty := tok.Typ; ty == TokLeftBrack {
+	switch tok.Typ {
+	case TokLeftBrack:
 		// Fill buffer until right bracket
 		return pa.fillBuffer(&tok, TokRightBrack, ErrMissingCloseBracket)
-	} else if ty == TokLeftParen {
+	case TokLeftParen:
 		// Fill buffer until right parenthesis
 		return pa.fillBuffer(&tok, TokRightParen, ErrMissingCloseParenthesis)
+	case TokLeftCurly:
+		// Fill buffer until right curly bracket
+		return pa.fillBuffer(&tok, TokRightCurly, ErrMissingCloseCurly)
 	}
 	return tok
 }
 
 func (pa *Parser) fillBuffer(token *Token, etyp TokenType, errEOF error) Token {
+	typ := token.Typ
 	nesting := uint(0)
 	for {
 		tok := pa.sc.Next()
@@ -127,23 +138,26 @@ func (pa *Parser) fillBuffer(token *Token, etyp TokenType, errEOF error) Token {
 			return Token{Typ: TokErr}
 		case TokErr:
 			return tok
-		case TokLeftBrack, TokLeftParen:
+		case TokLeftBrack, TokLeftParen, TokLeftCurly:
 			pa.tbuf = append(pa.tbuf, &tok)
 			nesting++
 			if nesting >= pa.maxNesting {
 				pa.sc.err = ErrNestedTooDeeply
 				return Token{Typ: TokErr}
 			}
-		case TokRightBrack, TokRightParen:
+		case TokRightBrack, TokRightParen, TokRightCurly:
 			pa.tbuf = append(pa.tbuf, &tok)
 			if nesting == 0 {
 				if tok.Typ == etyp {
 					return *token
 				}
-				if tok.Typ == TokRightBrack {
-					pa.sc.err = ErrMissingCloseParenthesis
-				} else {
+				switch typ {
+				case TokRightBrack:
 					pa.sc.err = ErrMissingCloseBracket
+				case TokRightParen:
+					pa.sc.err = ErrMissingCloseParenthesis
+				case TokRightCurly:
+					pa.sc.err = ErrMissingCloseCurly
 				}
 				return Token{Typ: TokErr}
 			}
@@ -165,12 +179,16 @@ func (pa *Parser) parseValue(tok Token) (Value, error) {
 		return pa.parseList()
 	case TokLeftBrack:
 		return pa.parseVector()
+	case TokLeftCurly:
+		return pa.parseTable()
 	case TokString:
 		return NewString(tok.Val), nil
 	case TokRightParen, TokPeriod:
 		return nil, ErrMissingOpenParenthesis
 	case TokRightBrack:
 		return nil, ErrMissingOpenBracket
+	case TokRightCurly:
+		return nil, ErrMissingOpenCurly
 	case TokSymbol:
 		return pa.smk.MakeSymbol(tok.Val), nil
 	default:
@@ -251,4 +269,24 @@ loop:
 		p = NewPair(elems[i], p)
 	}
 	return p, nil
+}
+
+func (pa *Parser) parseTable() (Value, error) {
+	elems := []Value{}
+	for {
+		tok := pa.next()
+		switch tok.Typ {
+		case TokEOF:
+			return nil, ErrMissingCloseCurly
+		case TokErr:
+			return nil, pa.err()
+		case TokRightCurly:
+			return NewTable(elems...), nil
+		}
+		val, err := pa.parseValue(tok)
+		if err != nil {
+			return nil, err
+		}
+		elems = append(elems, val)
+	}
 }
