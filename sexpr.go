@@ -19,6 +19,13 @@ type Value interface {
 	String() string
 }
 
+// Atom is a Value that cannot be further decomposed.
+type Atom interface {
+	Value
+
+	Value() string
+}
+
 // Sequence is a generic value that is a sequence of values.
 type Sequence interface {
 	Value

@@ -19,7 +19,7 @@ import (
 	"github.com/t73fde/sxpf"
 )
 
-func TestReadString(t *testing.T) {
+func TestParseString(t *testing.T) {
 	pml, pmr := strings.Repeat("(", 5000), strings.Repeat(")", 5000)
 	bml, bmr := strings.Repeat("[", 5000), strings.Repeat("]", 5000)
 	testcases := []struct {
@@ -64,8 +64,8 @@ func TestReadString(t *testing.T) {
 		{"{}", "{}"},
 		{"{a}", "{A ()}"},
 		{`{"a" a}`, `{"a" A}`},
-		{"{{a}}", "{{A ()} ()}"},
-		{"{{a b} c}", "{{A B} C}"},
+		{"{c {a}}", "{C {A ()}}"},
+		{"{c{a b}}", "{C {A B}}"},
 
 		{"A; bla", "A"},
 		{"; bla\na", "A"},
@@ -96,7 +96,7 @@ func TestReadString(t *testing.T) {
 	}
 }
 
-func TestReadMultiple(t *testing.T) {
+func TestParseMultiple(t *testing.T) {
 	testcases := []struct {
 		src string
 		exp string
@@ -137,7 +137,7 @@ func TestReadMultiple(t *testing.T) {
 	}
 }
 
-func TestReadBytesWithError(t *testing.T) {
+func TestParseBytesWithError(t *testing.T) {
 	testcases := []struct {
 		src string
 		msg string
@@ -183,7 +183,7 @@ func TestReadBytesWithError(t *testing.T) {
 	}
 }
 
-func FuzzReadBytes(f *testing.F) {
+func FuzzParseBytes(f *testing.F) {
 	smk := sxpf.NewTrivialSymbolMaker()
 	f.Fuzz(func(t *testing.T, src []byte) {
 		t.Parallel()

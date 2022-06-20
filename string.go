@@ -78,3 +78,5 @@ func (str *String) String() string {
 	buf.Write(quote)
 	return buf.String()
 }
+
+func (str *String) Value() string { return str.val }

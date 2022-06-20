@@ -32,6 +32,7 @@ func (sym *Symbol) Equal(other Value) bool {
 }
 
 func (sym *Symbol) String() string { return sym.val }
+func (sym *Symbol) Value() string  { return sym.val }
 
 // SymbolTable allows to create unique symbols.
 type SymbolTable struct {

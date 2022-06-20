@@ -14,26 +14,35 @@ import "bytes"
 
 // Table is a mapping between values.
 type Table struct {
-	m map[Value]Value
+	m map[string]Value
+	k map[string]Atom
 }
+
+// Rasa is the value of an empty table ("tabula rasa")
+func Rasa() *Table { return &myTabulaRasa }
+
+var myTabulaRasa = Table{make(map[string]Value, 0), make(map[string]Atom, 0)}
 
 // NewTable creates a new table with the given values.
 func NewTable(vals ...Value) *Table {
 	if len(vals)%2 == 1 {
 		vals = append(vals, Nil())
 	}
-	m := make(map[Value]Value, len(vals)/2)
-	t := Table{m}
-	if len(vals) == 0 {
-		return &t
-	}
-	for _, v := range vals {
-		if v == nil {
-			return &t
-		}
-	}
+	m := make(map[string]Value, len(vals)/2)
+	k := make(map[string]Atom, len(vals)/2)
+	t := Table{m, k}
 	for i := 0; i < len(vals); i += 2 {
-		m[vals[i]] = vals[i+1]
+		valueKey, valueValue := vals[i], vals[i+1]
+		if valueKey == nil || valueValue == nil {
+			return Rasa()
+		}
+		key, ok := valueKey.(Atom)
+		if !ok {
+			return Rasa()
+		}
+		strKey := key.Value()
+		m[strKey] = valueValue
+		k[strKey] = key
 	}
 	return &t
 }
@@ -69,7 +78,7 @@ func (tbl *Table) String() string {
 		} else {
 			buf.Write(space)
 		}
-		buf.WriteString(key.String())
+		buf.WriteString(tbl.k[key].String())
 		buf.Write(space)
 		buf.WriteString(val.String())
 	}
