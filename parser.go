@@ -44,6 +44,9 @@ var ErrMissingQuote = errors.New("missing quote character")
 // ErrMissing EOF is raised if there is additional input after an expression.
 var ErrMissingEOF = errors.New("missing end of input")
 
+// ErrUnknownToken is raised if an unexpected token occured.
+var ErrUnknownToken = errors.New("unknown token")
+
 func ParseString(smk SymbolMaker, src string) (Value, error) {
 	return consumeReader(smk, strings.NewReader(src))
 }
@@ -179,8 +182,6 @@ func (pa *Parser) parseValue(tok Token) (Value, error) {
 		return pa.parseList()
 	case TokLeftBrack:
 		return pa.parseVector()
-	case TokLeftCurly:
-		return pa.parseTable()
 	case TokString:
 		return NewString(tok.Val), nil
 	case TokRightParen, TokPeriod:
@@ -192,7 +193,7 @@ func (pa *Parser) parseValue(tok Token) (Value, error) {
 	case TokSymbol:
 		return pa.smk.MakeSymbol(tok.Val), nil
 	default:
-		panic(tok)
+		return nil, ErrUnknownToken
 	}
 }
 
@@ -269,24 +270,4 @@ loop:
 		p = NewPair(elems[i], p)
 	}
 	return p, nil
-}
-
-func (pa *Parser) parseTable() (Value, error) {
-	elems := []Value{}
-	for {
-		tok := pa.next()
-		switch tok.Typ {
-		case TokEOF:
-			return nil, ErrMissingCloseCurly
-		case TokErr:
-			return nil, pa.err()
-		case TokRightCurly:
-			return NewTable(elems...), nil
-		}
-		val, err := pa.parseValue(tok)
-		if err != nil {
-			return nil, err
-		}
-		elems = append(elems, val)
-	}
 }

@@ -7,8 +7,6 @@ sequence of unicode characters, using UTF-8 encoding. An expression of the
 form `()`, `(A)`, `(A B)`, ..., is a pair list, where A and B are
 s-expressions. If it has the form `(A . B)` it is a pair. An expression of the
 form `[]`, `[A]`, `[A B]`, ..., is a vector, where A and B are s-expressions.
-An expression of the form `{}`, `{A}`, `{A B}`, ..., is a table, where A and B
-are s-expressions.
 
 The framework contains types, functions, and methods to create s-expressions,
 to encode them as a string, and to evaluate them. Evaluation creates a third
@@ -34,7 +32,6 @@ evaluated before calling the form.
   and except `"`, `(`, `)`, `[`, `]`, `;`, `.`.
 * Pair = `(` Z\* (s-expression (Z\* s-sexpression)\* (Z\* `.` Z\* s-expression)?)? Z\* `)`
 * Vector = `[` Z\* (s-expression (Z\* s-expression)\*)? Z\* `]`
-* Table = `{` Z\* (s-expression (Z\* s-expression)\*)? Z\* `}`
 * Z = any unicode of category Z
 
 ## Note
